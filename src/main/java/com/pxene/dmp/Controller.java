@@ -10,11 +10,15 @@ public class Controller {
 	public static void main(String[] args) throws Exception {
 		String crawlStorageFolder = "temp";
 		// 抓取线程数
-		int numberOfCrawlers = 7;
+		int numberOfCrawlers = 50;
 
 		CrawlConfig config = new CrawlConfig();
 		// 临时存储路径
 		config.setCrawlStorageFolder(crawlStorageFolder);
+		
+//		config.setResumableCrawling(true);
+		
+		
 		// 抓取深度
 //		config.setMaxDepthOfCrawling(4);
 
@@ -26,6 +30,8 @@ public class Controller {
 				robotstxtServer);
 
 		controller.addSeed("http://www.autohome.com.cn/beijing/");
+		
+		
 
 		controller.start(MyCrawler.class, numberOfCrawlers);
 	}
