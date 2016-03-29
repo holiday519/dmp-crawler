@@ -29,10 +29,16 @@ public class Controller {
 		CrawlController controller = new CrawlController(config, pageFetcher,
 				robotstxtServer);
 
-		controller.addSeed("http://www.autohome.com.cn/beijing/");
-		
-		
 
-		controller.start(MyCrawler.class, numberOfCrawlers);
+		//针对汽车之家
+			controller.addSeed("http://www.autohome.com.cn/beijing/");
+		
+		//针对易车
+			controller.addSeed("http://beijing.bitauto.com/");
+			
+		
+		//针对惠买车
+			controller.addSeed("http://beijing.huimaiche.com/");
+			controller.start(MyCrawler.class, numberOfCrawlers);
 	}
 }
