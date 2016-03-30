@@ -24,9 +24,8 @@ public class MyCrawler extends WebCrawler {
 	
 	private static HConnection hTablePool = null;
 	private static HTableInterface table = null;
+	private static Configuration conf=new Configuration();
 	static{
-		Configuration conf = null;
-		conf = new Configuration();
 		String zk_list = "dmp01:2181,dmp02:2181,dmp03:2181,dmp04:2181";
 		conf.set("hbase.zookeeper.quorum", zk_list);
 		try {
@@ -37,7 +36,7 @@ public class MyCrawler extends WebCrawler {
 		}
 	}
 	private final static String REGEX4AUTO = "^http://www\\.autohome\\.com\\.cn/([\\d]*)/$";
-	private final static String REGEX4HMC = "^^http://beijing.huimaiche.com/([\\w|\\d]*)/$";
+	private final static String REGEX4HMC = "^http://beijing.huimaiche.com/([\\w|\\d]*)/$";
 	private final static String REGEX4YICHE = "^http://car.bitauto.com/([\\w|\\d]*)/$";
 
 	@Override
