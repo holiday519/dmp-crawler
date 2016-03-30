@@ -42,7 +42,7 @@ public class MyCrawler4auto extends WebCrawler {
 			e.printStackTrace();
 		}
 	}
-	private final static String REGEX4AUTO = "^http://www.autohome.com.*?";
+	private final static String REGEX4AUTO = "^http://www.autohome.com.cn/car/$";
 	
 	
 
@@ -53,8 +53,26 @@ public class MyCrawler4auto extends WebCrawler {
 
 	@Override
 	public void visit(Page page) {
-		autohome2hbase(page, REGEX4AUTO);
+//		autohome2hbase(page, REGEX4AUTO);
+		String url = page.getWebURL().getURL();
+		Document doc;
+		try {
+			doc = Jsoup.connect(url).get();
+			JXDocument jxDocument = new JXDocument(doc);
+			
+			List<Object> infos = jxDocument.sel("//li/h4/a/allText()"); // 信息
+			for (Object info : infos) {
+				// System.out.println(price);
+				System.out.println(info);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
+	
+	
 
 	private void autohome2hbase(Page page, String regex) {
 		String url = page.getWebURL().getURL();

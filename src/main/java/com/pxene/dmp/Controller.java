@@ -1,5 +1,10 @@
 package com.pxene.dmp;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.httpclient.Header;
+
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
@@ -19,7 +24,7 @@ public class Controller {
 		String crawlStorageFolder2 = "temp2";
 		String crawlStorageFolder3 = "temp3";
 		// 抓取线程数
-		int numberOfCrawlers = 40;
+		int numberOfCrawlers = 20;
 
 		CrawlConfig config1 = new CrawlConfig();
 		CrawlConfig config2 = new CrawlConfig();
@@ -32,7 +37,7 @@ public class Controller {
 //		 config.setResumableCrawling(true);
 
 		// 抓取深度
-//		 config.setMaxDepthOfCrawling(4);
+		 config1.setMaxDepthOfCrawling(2);
 		
 		//设置UA
 		config1.setUserAgentString(UA1);
@@ -50,7 +55,7 @@ public class Controller {
 		CrawlController controller1 = new CrawlController(config1, pageFetcher1, robotstxtServer);
 		CrawlController controller2 = new CrawlController(config2, pageFetcher2, robotstxtServer);
 		CrawlController controller3 = new CrawlController(config3, pageFetcher3, robotstxtServer);
-		String[] crawler1Domains = {"http://www.autohome.com.cn/beijing/"};
+		String[] crawler1Domains = {"http://www.autohome.com.cn/car/"};
 		String[] crawler2Domains = {"http://beijing.bitauto.com/"};
 		String[] crawler3Domains = {"http://beijing.huimaiche.com/"};
 		controller1.setCustomData(crawler1Domains);
@@ -58,7 +63,7 @@ public class Controller {
 		controller3.setCustomData(crawler3Domains);
 		
 		// 针对汽车之家
-		controller1.addSeed("http://www.autohome.com.cn/beijing/");
+		controller1.addSeed("http://www.autohome.com.cn/car/");
 
 		// 针对易车
 		controller2.addSeed("http://beijing.bitauto.com/");
@@ -68,11 +73,11 @@ public class Controller {
 		
 		controller1.startNonBlocking(MyCrawler4auto.class, numberOfCrawlers);
 		controller1.waitUntilFinish();
+//		
+//		controller2.startNonBlocking(MyCrawler4yiche.class, numberOfCrawlers);
+//		controller2.waitUntilFinish();
 		
-		controller2.startNonBlocking(MyCrawler4yiche.class, numberOfCrawlers);
-		controller2.waitUntilFinish();
-		
-		controller3.startNonBlocking(MyCrawler4hmc.class, numberOfCrawlers);
-		controller3.waitUntilFinish();
+//		controller3.startNonBlocking(MyCrawler4hmc.class, numberOfCrawlers);
+//		controller3.waitUntilFinish();
 	}
 }
