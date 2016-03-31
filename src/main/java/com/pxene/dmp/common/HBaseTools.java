@@ -31,7 +31,6 @@ public class HBaseTools {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		table.setAutoFlushTo(false);
 		return table;
 	}
 	
