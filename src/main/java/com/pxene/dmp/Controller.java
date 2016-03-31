@@ -37,7 +37,7 @@ public class Controller {
 //		 config.setResumableCrawling(true);
 
 		// 抓取深度
-		 config1.setMaxDepthOfCrawling(2);
+		config1.setMaxDepthOfCrawling(2);
 		
 		//设置UA
 		config1.setUserAgentString(UA1);

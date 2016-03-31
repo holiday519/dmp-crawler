@@ -20,8 +20,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import cn.wanghaomiao.xpath.model.JXDocument;
-import dao.HBaseDAO;
-import dao.impl.HBaseDAOImp;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.url.WebURL;
