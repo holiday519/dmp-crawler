@@ -1,4 +1,4 @@
-package com.pxene.dmp.crawler;
+package com.pxene.dmp.crawler.autocode;
 
 import java.io.IOException;
 import java.util.List;

@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
@@ -26,10 +25,10 @@ public class SeedConfig {
 		return seeds;
 	}
 	
-	public static void main(String[] args) {
-		Iterator<JsonElement> iter = config.get("Crawler4Autohome").getAsJsonArray().iterator();
-		while (iter.hasNext()) {
-			System.out.println(iter.next().getAsString());
-		}
-	}
+//	public static void main(String[] args) {
+//		Iterator<JsonElement> iter = config.get("autocode.Crawler4Autohome").getAsJsonArray().iterator();
+//		while (iter.hasNext()) {
+//			System.out.println(iter.next().getAsString());
+//		}
+//	}
 }
