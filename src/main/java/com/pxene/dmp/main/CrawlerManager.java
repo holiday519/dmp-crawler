@@ -37,6 +37,7 @@ public class CrawlerManager {
 	        RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
 	        RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
 	        CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+	     
 	        
 	        for (String seed : SeedConfig.getSeeds(className)) {
 	        	controller.addSeed(seed);
