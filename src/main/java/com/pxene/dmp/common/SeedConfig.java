@@ -18,7 +18,7 @@ public class SeedConfig {
 	
 	public static List<String> getSeeds(String key) {
 		List<String> seeds = new ArrayList<String>();
-		Iterator<JsonElement> iter = config.get("Crawler4Autohome").getAsJsonArray().iterator();
+		Iterator<JsonElement> iter = config.get("autocode.Crawler4Autohome").getAsJsonArray().iterator();
 		while (iter.hasNext()) {
 			seeds.add(iter.next().getAsString());
 		}

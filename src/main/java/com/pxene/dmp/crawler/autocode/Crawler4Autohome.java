@@ -3,6 +3,8 @@ package com.pxene.dmp.crawler.autocode;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.Put;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,7 +21,7 @@ public class Crawler4Autohome extends WebCrawler {
 
 	private static final String REGEX = "^http://www\\.autohome\\.com\\.cn.*?";
 	private static final String SERIES_REGEX = "^http://www.autohome.com.cn/spec/([\\d]*)/$";
-	
+	private Log log = LogFactory.getLog(Crawler4Autohome.class);
 
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
@@ -38,7 +40,7 @@ public class Crawler4Autohome extends WebCrawler {
 		Pattern pattern = Pattern.compile(SERIES_REGEX);
 		Matcher matcher = pattern.matcher(url);
 		if (matcher.find()) {
-			System.out.println("*URL***" + url);
+			log.info(url);  //处理的url页
 			try {
 				Document doc = Jsoup.connect(url).get();
 				Elements bbs = doc.getElementsByAttributeValueMatching("href", "^/[\\d]*/$");
@@ -50,7 +52,7 @@ public class Crawler4Autohome extends WebCrawler {
 				String specName = doc.select("div.subnav-title-name>a>h1").text(); // 具体名
 
 				Elements pps = doc.getElementsByAttribute("data-price");
-				String manu_price = pps.get(0).attr("data-price").split("万")[0];
+				String manu_price = pps.get(0).attr("data-price").split("万")[0];  //指导价格
 
 				Elements coms = doc.select("div.cardetail-infor-car>ul.fn-clear");
 
