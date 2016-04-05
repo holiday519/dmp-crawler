@@ -1,34 +1,24 @@
 package com.pxene.dmp.crawler.test;
 
-import java.io.IOException;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4TestAuth extends WebCrawler {
 
-	private static final String REGEX = "^http://www\\.autohome\\.com\\.cn/[\\d]*/.*?";
+	// 网站url（配置全站的url才能将url抓全）
+	private static final String SITE_REGEX = "^http://[0-9a-zA-Z]{1,10}\\.autohome\\.com\\.cn/.*?";
 
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
-		return url.getURL().toLowerCase().matches(REGEX);
+		System.out.println(url.getURL());
+		return url.getURL().matches(SITE_REGEX);
 	}
 
 	@Override
 	public void visit(Page page) {
 		String url = page.getWebURL().getURL();
-//		System.out.println(url);
-		try {
-			Document doc = Jsoup.connect(url).get();
-			System.out.println(doc.select(".subnav-title-name a").html());
-		} catch (IOException e) {
-			e.printStackTrace();
-		} 
+		System.out.println(url);
 	}
 
 }

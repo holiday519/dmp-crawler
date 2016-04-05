@@ -1,5 +1,8 @@
 package com.pxene.dmp.main;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -12,6 +15,8 @@ import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.CrawlController.WebCrawlerFactory;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
+import edu.uci.ics.crawler4j.crawler.authentication.AuthInfo;
+import edu.uci.ics.crawler4j.crawler.authentication.BasicAuthInfo;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
@@ -32,6 +37,14 @@ public class CrawlerManager {
 		if (line.hasOption("className")) {
 			final String className = line.getOptionValue("className");
 			CrawlConfig config = new CrawlConfig();
+			// 抓取深度
+			//config.setMaxDepthOfCrawling(1);
+			// 登陆
+			List<AuthInfo> infos = new ArrayList<AuthInfo>();
+			AuthInfo info = new BasicAuthInfo("holiday519", "history422", "http://account.autohome.com.cn/");
+			infos.add(info);
+			config.setAuthInfos(infos);
+			
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setUserAgentString(USERAGENT);
 
@@ -63,4 +76,5 @@ public class CrawlerManager {
 
 	}
 
+	
 }
