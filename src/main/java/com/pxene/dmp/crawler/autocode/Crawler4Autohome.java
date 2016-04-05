@@ -60,8 +60,13 @@ public class Crawler4Autohome extends WebCrawler {
 				String engine = details.get(6).ownText();
 				String gearbox = details.get(7).ownText();
 				
+				//提取返回的url
+				String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
+				String autoName = Jsoup.connect(returna).get().select("div.subnav-title-name a").first().text();
+				
 				Map<String, byte[]> datas = new HashMap<String, byte[]>();
 				datas.put("style_name", Bytes.toBytes(styleName));
+				datas.put("auto_name", Bytes.toBytes(autoName));
 				datas.put("manu_price", Bytes.toBytes(price));
 				datas.put("source", Bytes.toBytes(source));
 				datas.put("owner_oil", Bytes.toBytes(ownerOil));

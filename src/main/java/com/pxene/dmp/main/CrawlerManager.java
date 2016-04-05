@@ -22,7 +22,7 @@ public class CrawlerManager {
 		// 基本配置
 		final String packageName = "com.pxene.dmp.crawler";
 		String crawlStorageFolder = "temp";
-		int numberOfCrawlers = 2;
+		int numberOfCrawlers = 40;
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("className", true, "input class name of crawler");
