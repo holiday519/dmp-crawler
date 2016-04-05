@@ -33,6 +33,7 @@ public class CrawlerManager {
 			final String className = line.getOptionValue("className");
 			CrawlConfig config = new CrawlConfig();
 	        config.setCrawlStorageFolder(crawlStorageFolder);
+	        config.setUserAgentString(USERAGENT);
 	        
 	        PageFetcher pageFetcher = new PageFetcher(config);
 	        RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
