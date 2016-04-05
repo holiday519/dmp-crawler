@@ -69,8 +69,8 @@ public class Crawler4Autohome extends WebCrawler {
 				if (table != null) {
 					String rowKey = "00030005_" + autoId + "_" + styleId;
 					HBaseTools.addColumnDatas(table, rowKey, "auto_info", datas);
+					HBaseTools.closeTable(table);
 				}
-				HBaseTools.closeTable(table);
 				
 			} catch (IOException e) {
 				e.printStackTrace();
