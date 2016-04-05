@@ -1,13 +1,21 @@
 package com.pxene.dmp.common;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.filter.PrefixFilter;
+import org.apache.hadoop.hbase.util.Bytes;
 
 public class HBaseTools {
 
@@ -44,7 +52,7 @@ public class HBaseTools {
 		}
 	}
 	
-	public static void addColumnDatas(HTableInterface table, String rowKey, String familyName, Map<String, byte[]> columnDatas) {
+	public static void putColumnDatas(HTableInterface table, String rowKey, String familyName, Map<String, byte[]> columnDatas) {
 		Put put = new Put(rowKey.getBytes());
 		for (Map.Entry<String, byte[]> data : columnDatas.entrySet()) {
 			put.add(familyName.getBytes(), data.getKey().getBytes(), data.getValue()); 
@@ -55,4 +63,27 @@ public class HBaseTools {
 			e.printStackTrace();
 		}
 	}
+	
+//	public static String[] getRowKeys(HTableInterface table, String prefix) {
+//		List<String> rowKeys = new ArrayList<String>();
+//		Scan scan = new Scan();
+//		scan.setFilter(new PrefixFilter(Bytes.toBytes(prefix)));
+//		try {
+//			ResultScanner scanner = table.getScanner(scan);
+//			for (Result result : scanner) {
+//				rowKeys.add(new String(result.getRow()));
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		return (String[])rowKeys.toArray();
+//	}
+//	
+//	public static void putRowDatas(HTableInterface table, Map<String, Map<String, Map<String, byte[]>>> rowDatas) {
+//		List<Put> puts = new ArrayList<Put>();
+//		for (Map.Entry<String, Map<String, Map<String, byte[]>>> rowData : rowDatas.entrySet()) {
+//			String rowKey = rowData.getKey();
+//		}
+//	}
 }

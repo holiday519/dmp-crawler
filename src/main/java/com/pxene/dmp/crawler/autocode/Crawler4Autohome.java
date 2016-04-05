@@ -22,9 +22,16 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class Crawler4Autohome extends WebCrawler {
 
 	// 网站url（配置全站的url才能将url抓全）
-	private static final String SITE_REGEX = "^http://.{1,9}\\.autohome\\.com\\.cn/.*?";
+	private static final String SITE_REGEX = "^http://[0-9a-zA-Z]{1,10}\\.autohome\\.com\\.cn/.*?";
+	
 	// 提取style信息的url
 	private static final String STYLE_REGEX = "^http://www\\.autohome\\.com\\.cn/spec/[\\d]*/$";
+	
+	private static final String TABLE_NAME = "t_auto_autoinfo";
+	
+	private static final String FAMILY_NAME = "auto_info";
+	
+	private static final String ROWKEY_PREFIX = "00030005_";
 	
 	private Log log = LogFactory.getLog(Crawler4Autohome.class);
 	
@@ -65,17 +72,17 @@ public class Crawler4Autohome extends WebCrawler {
 				datas.put("engine", Bytes.toBytes(engine));
 				datas.put("gearbox", Bytes.toBytes(gearbox));
 				
-				HTableInterface table = HBaseTools.openTable("t_auto_autoinfo");
+				HTableInterface table = HBaseTools.openTable(TABLE_NAME);
 				if (table != null) {
-					String rowKey = "00030005_" + autoId + "_" + styleId;
-					HBaseTools.addColumnDatas(table, rowKey, "auto_info", datas);
+					String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
+					HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
 					HBaseTools.closeTable(table);
 				}
-				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
+		
 	}
-	
+
 }

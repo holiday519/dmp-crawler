@@ -25,10 +25,4 @@ public class SeedConfig {
 		return seeds;
 	}
 	
-//	public static void main(String[] args) {
-//		Iterator<JsonElement> iter = config.get("autocode.Crawler4Autohome").getAsJsonArray().iterator();
-//		while (iter.hasNext()) {
-//			System.out.println(iter.next().getAsString());
-//		}
-//	}
 }
