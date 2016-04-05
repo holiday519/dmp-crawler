@@ -12,7 +12,7 @@ public class StringUtils {
 		Pattern REGEX_PATTERN = Pattern.compile(regex);
 		Matcher matcher = REGEX_PATTERN.matcher(str);
 		if (matcher.find()) {
-			return matcher.group(1);
+			return matcher.group(1).trim();
 		}
 		return "";
 	}
