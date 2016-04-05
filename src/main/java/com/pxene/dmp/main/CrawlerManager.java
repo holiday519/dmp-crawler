@@ -22,7 +22,7 @@ public class CrawlerManager {
 		// 基本配置
 		final String packageName = "com.pxene.dmp.crawler";
 		String crawlStorageFolder = "temp";
-		int numberOfCrawlers = 40;
+		int numberOfCrawlers = 2;
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("className", true, "input class name of crawler");
@@ -33,11 +33,11 @@ public class CrawlerManager {
 			final String className = line.getOptionValue("className");
 			CrawlConfig config = new CrawlConfig();
 	        config.setCrawlStorageFolder(crawlStorageFolder);
+	        
 	        PageFetcher pageFetcher = new PageFetcher(config);
 	        RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
 	        RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
 	        CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
-	     
 	        
 	        for (String seed : SeedConfig.getSeeds(className)) {
 	        	controller.addSeed(seed);

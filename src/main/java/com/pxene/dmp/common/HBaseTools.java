@@ -44,13 +44,10 @@ public class HBaseTools {
 		}
 	}
 	
-	public static void putData(HTableInterface table, String key, Map<String, Map<String, byte[]>> data) {
-		Put put = new Put(key.getBytes());
-		for (Map.Entry<String, Map<String, byte[]>> family : data.entrySet()) {
-			String name = family.getKey();
-			for (Map.Entry<String, byte[]> column : family.getValue().entrySet()) {
-				put.add(name.getBytes(), column.getKey().getBytes(), column.getValue()); 
-			}
+	public static void addColumnDatas(HTableInterface table, String rowKey, String familyName, Map<String, byte[]> columnDatas) {
+		Put put = new Put(rowKey.getBytes());
+		for (Map.Entry<String, byte[]> data : columnDatas.entrySet()) {
+			put.add(familyName.getBytes(), data.getKey().getBytes(), data.getValue()); 
 		}
 		try {
 			table.put(put);
