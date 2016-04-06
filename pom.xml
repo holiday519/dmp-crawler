@@ -87,6 +87,14 @@
 						<descriptor>src/main/resources/assembly.xml</descriptor>
 					</descriptors>
 					<appendAssemblyId>false</appendAssemblyId>
+					<descriptorRefs>  
+            		<descriptorRef>jar-with-dependencies</descriptorRef>  
+       				 </descriptorRefs>  
+        				<archive>  
+         		   			<manifest>  
+          				      <mainClass>com.pxene.dmp.main.CrawlerManager</mainClass>  
+         				   </manifest>  
+      				  </archive>  
 				</configuration>
 				<executions>
 					<execution>

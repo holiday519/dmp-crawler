@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -23,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import com.pxene.dmp.common.CookieTools;
+import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.TimeConstant;
 import com.pxene.dmp.domain.BuyCarEvent;
 
@@ -52,8 +54,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 	 * 配置文件中的cookies信息
 	 */
 	private Map<String, String> cookies = CookieTools.loadCookies(COOKIES_FILE_NAME);
-	// private HTableInterface userInfo =
-	// HBaseTools.openTable("t_auto_userinfo");
+	private HTableInterface userInfo = HBaseTools.openTable("t_auto_userinfo");
 	/**
 	 * 读取配置文件中的省份，城市信息
 	 */
@@ -157,7 +158,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 				// }
 				// logger.info("URL:" + url + " " + rowKey + " user_info:[" +
 				// loginfo.toString() + "]");
-				// HBaseTools.putData(userInfo, rowKey, data);
+				HBaseTools.putData(userInfo, rowKey, data);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
