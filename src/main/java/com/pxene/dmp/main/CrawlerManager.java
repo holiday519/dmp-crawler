@@ -2,6 +2,7 @@ package com.pxene.dmp.main;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -9,6 +10,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
+import com.pxene.dmp.common.ProxyTool;
 import com.pxene.dmp.common.SeedConfig;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
@@ -44,6 +46,10 @@ public class CrawlerManager {
 			AuthInfo info = new BasicAuthInfo("holiday519", "history422", "http://account.autohome.com.cn/");
 			infos.add(info);
 			config.setAuthInfos(infos);
+			//設置代理
+			Map<String, String> ipInfo = ProxyTool.getIpInfo();
+			config.setProxyHost(ipInfo.get("ip"));
+			config.setProxyHost(ipInfo.get("port"));
 			
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setUserAgentString(USERAGENT);

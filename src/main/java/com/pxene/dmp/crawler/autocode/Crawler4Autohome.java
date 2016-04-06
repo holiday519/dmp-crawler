@@ -13,6 +13,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import com.pxene.dmp.common.HBaseTools;
+import com.pxene.dmp.common.ProxyTool;
 import com.pxene.dmp.common.StringUtils;
 
 import edu.uci.ics.crawler4j.crawler.Page;
@@ -22,7 +23,7 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class Crawler4Autohome extends WebCrawler {
 
 	// 网站url（配置全站的url才能将url抓全）
-	private static final String SITE_REGEX = "^http://[0-9a-zA-Z]{1,10}\\.autohome\\.com\\.cn/.*?";
+	private static final String SITE_REGEX = "^http://.*?\\.autohome\\.com\\.cn/.*?";
 	
 	// 提取style信息的url
 	private static final String STYLE_REGEX = "^http://www\\.autohome\\.com\\.cn/spec/[\\d]*/$";
@@ -43,10 +44,16 @@ public class Crawler4Autohome extends WebCrawler {
 	@Override
 	public void visit(Page page) {
 		String url = page.getWebURL().getURL();
-		log.info("##########"+url); //日志打印
 		if (url.matches(STYLE_REGEX)) {
+			log.info("##########"+url); //日志打印
 			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
 			try {
+				//用的代理服务器  
+				Map<String, String> ipInfo = ProxyTool.getIpInfo();
+		        System.getProperties().setProperty("socksProxyHost",ipInfo.get("ip"));
+		        //代理端口  
+		        System.getProperties().setProperty("socksProxyPort", ipInfo.get("port")); 
+		        
 				Document doc = Jsoup.connect(url).get();
 				String autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/([\\d]*)/\\?pvareaid=");
 				String styleName = doc.select(".subnav-title-name a h1").get(0).text();
