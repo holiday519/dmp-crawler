@@ -47,9 +47,9 @@ public class CrawlerManager {
 			infos.add(info);
 			config.setAuthInfos(infos);
 			//設置代理
-			Map<String, String> ipInfo = ProxyTool.getIpInfo();
-			config.setProxyHost(ipInfo.get("ip"));
-			config.setProxyHost(ipInfo.get("port"));
+//			Map<String, String> ipInfo = ProxyTool.getIpInfo();
+//			config.setProxyHost(ipInfo.get("ip"));
+//			config.setProxyHost(ipInfo.get("port"));
 			
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setUserAgentString(USERAGENT);

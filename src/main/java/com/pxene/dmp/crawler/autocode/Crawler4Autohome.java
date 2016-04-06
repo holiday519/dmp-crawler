@@ -22,6 +22,7 @@ import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4Autohome extends WebCrawler {
 
+	private static final String USERAGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
 	// 网站url（配置全站的url才能将url抓全）
 	private static final String SITE_REGEX = "^http://.*?\\.autohome\\.com\\.cn/.*?";
 	
@@ -48,13 +49,12 @@ public class Crawler4Autohome extends WebCrawler {
 			log.info("##########"+url); //日志打印
 			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
 			try {
-				//用的代理服务器  
-				Map<String, String> ipInfo = ProxyTool.getIpInfo();
-		        System.getProperties().setProperty("socksProxyHost",ipInfo.get("ip"));
-		        //代理端口  
-		        System.getProperties().setProperty("socksProxyPort", ipInfo.get("port")); 
+				//用用戶代理
+//				Map<String, String> ipInfo = ProxyTool.getIpInfo();
+//		        System.getProperties().setProperty("socksProxyHost",ipInfo.get("ip"));
+//		        System.getProperties().setProperty("socksProxyPort", ipInfo.get("port")); 
 		        
-				Document doc = Jsoup.connect(url).get();
+				Document doc = Jsoup.connect(url).userAgent(USERAGENT).get();
 				String autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/([\\d]*)/\\?pvareaid=");
 				String styleName = doc.select(".subnav-title-name a h1").get(0).text();
 				float price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：([.\\d]*)万元"));
@@ -70,7 +70,7 @@ public class Crawler4Autohome extends WebCrawler {
 				
 				//提取返回的url
 				String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
-				String autoName = Jsoup.connect(returna).get().select("div.subnav-title-name a").first().text();
+				String autoName = Jsoup.connect(returna).userAgent(USERAGENT).get().select("div.subnav-title-name a").first().text();
 				
 				Map<String, byte[]> datas = new HashMap<String, byte[]>();
 				datas.put("style_name", Bytes.toBytes(styleName));
@@ -88,7 +88,7 @@ public class Crawler4Autohome extends WebCrawler {
 				HTableInterface table = HBaseTools.openTable(TABLE_NAME);
 				if (table != null) {
 					String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
-//					HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
+					HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
 					HBaseTools.closeTable(table);
 				}
 			} catch (IOException e) {
