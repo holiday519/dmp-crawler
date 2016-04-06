@@ -46,7 +46,7 @@ public class Crawler4Autohome extends WebCrawler {
 	public void visit(Page page) {
 		String url = page.getWebURL().getURL();
 		if (url.matches(STYLE_REGEX)) {
-			System.out.println(page.getWebURL().getParentUrl()+"****"+page.getWebURL().getURL()); //日志打印
+			log.info("****"+page.getWebURL().getURL()); //日志打印
 			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
 			try {
 				//用用戶代理
