@@ -65,6 +65,7 @@
 			<artifactId>hbase-server</artifactId>
 			<version>${hbase.version}</version>
 		</dependency>
+		
 	</dependencies>
 	<build>
 		<plugins>

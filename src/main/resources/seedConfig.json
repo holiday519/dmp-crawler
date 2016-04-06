@@ -1,8 +1,11 @@
 {
 	autocode.Crawler4Autohome : [
-		"http://car.autohome.com.cn/price/"
+		"http://www.autohome.com.cn/beijing/"
+	],		
+	autocode.Crawler4AutohomeUser : [
+		"http://club.autohome.com.cn/"	
 	],
-	test.Crawler4TestAuth : [
-		"http://i.autohome.com.cn/22295749/info"
-	]			
+	autocode.Crawler4AutohomeBBS : [
+		"http://club.autohome.com.cn/"	
+	]
 }
