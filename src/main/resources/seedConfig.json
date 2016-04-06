@@ -1,6 +1,8 @@
 {
 	autocode.Crawler4Autohome : [
-		"http://www.autohome.com.cn/spec/23089/"
+		"http://www.autohome.com.cn/car/?pvareaid=101452",
+		"http://www.autohome.com.cn/beijing/",
+		"http://car.autohome.com.cn/price/"
 	],
 	test.Crawler4TestAuth : [
 		"http://i.autohome.com.cn/22295749/info"

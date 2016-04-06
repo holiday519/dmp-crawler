@@ -43,6 +43,7 @@ public class Crawler4Autohome extends WebCrawler {
 	@Override
 	public void visit(Page page) {
 		String url = page.getWebURL().getURL();
+		log.info("##########"+url); //日志打印
 		if (url.matches(STYLE_REGEX)) {
 			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
 			try {
@@ -80,7 +81,7 @@ public class Crawler4Autohome extends WebCrawler {
 				HTableInterface table = HBaseTools.openTable(TABLE_NAME);
 				if (table != null) {
 					String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
-					HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
+//					HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
 					HBaseTools.closeTable(table);
 				}
 			} catch (IOException e) {
