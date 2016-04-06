@@ -53,6 +53,8 @@ public class CrawlerManager {
 			
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setUserAgentString(USERAGENT);
+			config.setSocketTimeout(5000);
+			config.setConnectionTimeout(5000);
 
 			PageFetcher pageFetcher = new PageFetcher(config);
 			RobotstxtConfig robotstxtConfig = new RobotstxtConfig();

@@ -1,7 +1,5 @@
 {
 	autocode.Crawler4Autohome : [
-		"http://www.autohome.com.cn/car/",
-		"http://www.autohome.com.cn/beijing/",
 		"http://car.autohome.com.cn/price/"
 	],
 	test.Crawler4TestAuth : [

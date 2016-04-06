@@ -46,7 +46,7 @@ public class Crawler4Autohome extends WebCrawler {
 	public void visit(Page page) {
 		String url = page.getWebURL().getURL();
 		if (url.matches(STYLE_REGEX)) {
-			log.info("##########"+url); //日志打印
+			System.out.println(page.getWebURL().getParentUrl()+"****"+page.getWebURL().getURL()); //日志打印
 			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
 			try {
 				//用用戶代理
@@ -54,7 +54,7 @@ public class Crawler4Autohome extends WebCrawler {
 //		        System.getProperties().setProperty("socksProxyHost",ipInfo.get("ip"));
 //		        System.getProperties().setProperty("socksProxyPort", ipInfo.get("port")); 
 		        
-				Document doc = Jsoup.connect(url).userAgent(USERAGENT).get();
+				Document doc = Jsoup.connect(url).timeout(5000).userAgent(USERAGENT).get();
 				String autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/([\\d]*)/\\?pvareaid=");
 				String styleName = doc.select(".subnav-title-name a h1").get(0).text();
 				float price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：([.\\d]*)万元"));
@@ -70,7 +70,7 @@ public class Crawler4Autohome extends WebCrawler {
 				
 				//提取返回的url
 				String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
-				String autoName = Jsoup.connect(returna).userAgent(USERAGENT).get().select("div.subnav-title-name a").first().text();
+				String autoName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get().select("div.subnav-title-name a").first().text();
 				
 				Map<String, byte[]> datas = new HashMap<String, byte[]>();
 				datas.put("style_name", Bytes.toBytes(styleName));
