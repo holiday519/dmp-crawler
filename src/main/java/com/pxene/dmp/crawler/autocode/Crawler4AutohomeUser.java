@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -24,7 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import com.pxene.dmp.common.CookieTools;
-import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.TimeConstant;
 import com.pxene.dmp.domain.BuyCarEvent;
 
@@ -40,9 +38,9 @@ public class Crawler4AutohomeUser extends WebCrawler {
 	/**
 	 * 模拟登陆的url
 	 */
+	private final static String LOGIN_URL = "http://account.autohome.com.cn/Login/ValidIndex";
 	private final static String LOGIN_FILE_NAME = "autohome_login.properties";
 	private final static String COOKIES_FILE_NAME = "cookies.json";
-	private final static String LOGIN_URL = "http://account.autohome.com.cn/Login/ValidIndex";
 	private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0";
 
 	private final static String CODE4AUTO = "00010005001";
@@ -54,7 +52,8 @@ public class Crawler4AutohomeUser extends WebCrawler {
 	 * 配置文件中的cookies信息
 	 */
 	private Map<String, String> cookies = CookieTools.loadCookies(COOKIES_FILE_NAME);
-	private HTableInterface userInfo = HBaseTools.openTable("t_auto_userinfo");
+	// private HTableInterface userInfo =
+	// HBaseTools.openTable("t_auto_userinfo");
 	/**
 	 * 读取配置文件中的省份，城市信息
 	 */
@@ -83,10 +82,11 @@ public class Crawler4AutohomeUser extends WebCrawler {
 			 * 抓取用户id
 			 */
 			String userId = url.substring(url.lastIndexOf("/") + 1, url.length());
+			System.out.println(userId);
 			String rowKey = CODE4AUTO + "_" + url.substring(url.lastIndexOf("/") + 1, url.length());
 			// System.out.println("rowKey:" + "==============" + rowKey);
 			try {
-				Document doc = Jsoup.connect(url).get();
+				Document doc = Jsoup.connect(url).userAgent(USER_AGENT).timeout(5000).get();
 
 				/**
 				 * 抓取用户名称
@@ -122,13 +122,14 @@ public class Crawler4AutohomeUser extends WebCrawler {
 				/**
 				 * 抓取用户的生日
 				 */
-				Document birthDoc = Jsoup.connect(url + "/info").cookies(cookies).get();
+				Document birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).timeout(5000).cookies(cookies)
+						.get();
 				Element divuserinfo = birthDoc.getElementById("divuserinfo");
 				if (divuserinfo == null) {
 					// 说明登陆失败,更新cookie
 					CookieTools.update(LOGIN_FILE_NAME, LOGIN_URL, COOKIES_FILE_NAME);
 					this.cookies = CookieTools.loadCookies(COOKIES_FILE_NAME);
-					birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).cookies(cookies).get();
+					birthDoc = Jsoup.connect(url + "/info").timeout(5000).userAgent(USER_AGENT).cookies(cookies).get();
 					divuserinfo = birthDoc.getElementById("divuserinfo");
 				}
 				Elements birthTemp = divuserinfo.select("p");
@@ -156,7 +157,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 				// }
 				// logger.info("URL:" + url + " " + rowKey + " user_info:[" +
 				// loginfo.toString() + "]");
-				HBaseTools.putData(userInfo, rowKey, data);
+				// HBaseTools.putData(userInfo, rowKey, data);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -172,7 +173,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 	private void getBuyCarsInfo(String userID, Map<String, byte[]> family) throws IOException {
 		// 打开他的价格页
 		String zhidaoUrl = "http://jiage.autohome.com.cn/web/price/otherlist?memberid=" + userID;
-		Document zhidaoDoc = Jsoup.connect(zhidaoUrl).get();
+		Document zhidaoDoc = Jsoup.connect(zhidaoUrl).userAgent(USER_AGENT).timeout(5000).get();
 
 		Elements buyEventLists = zhidaoDoc.select("div[class=price-i-box]>ul");
 
@@ -215,7 +216,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 			// 打开他的口碑页
 
 			String koubeiUrl = "http://k.autohome.com.cn/myspace/koubei/his/" + userID;
-			Document koubeiDoc = Jsoup.connect(koubeiUrl).get();
+			Document koubeiDoc = Jsoup.connect(koubeiUrl).userAgent(USER_AGENT).timeout(5000).get();
 			Elements koubeiLists = koubeiDoc.select("div[class=mouthcont-main]>dl");
 			if (koubeiLists.size() > 0) {
 				for (Element event : koubeiLists) {
@@ -261,7 +262,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 	 */
 	private void getCarsInfo(String url, Map<String, byte[]> family) throws IOException {
 
-		Document carDoc = Jsoup.connect(url + "/car").get();
+		Document carDoc = Jsoup.connect(url + "/car").userAgent(USER_AGENT).timeout(5000).get();
 		StringBuffer userAuthCarsId = new StringBuffer();
 		StringBuffer userFocusCarsId = new StringBuffer();
 		StringBuffer userUsingCarsId = new StringBuffer();
@@ -301,7 +302,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 				break;
 			} else {
 				String nextPageUrl = "http://i.autohome.com.cn" + nextPage.attr("href");
-				carDoc = Jsoup.connect(nextPageUrl).get();
+				carDoc = Jsoup.connect(nextPageUrl).userAgent(USER_AGENT).timeout(5000).get();
 			}
 		}
 		if (userFocusCarsId.length() > 0) {

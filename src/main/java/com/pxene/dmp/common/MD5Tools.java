@@ -28,8 +28,4 @@ public class MD5Tools {
 		}
 		return md5code;
 	}
-
-	public static void main(String[] args) {
-		System.out.println(md5("x"));
-	}
 }
