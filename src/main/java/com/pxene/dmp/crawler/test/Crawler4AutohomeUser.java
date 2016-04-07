@@ -1,4 +1,4 @@
-package com.pxene.dmp.crawler.autocode;
+package com.pxene.dmp.crawler.test;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,10 +23,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
+import com.pxene.dmp.autocode.vo.BuyCarEvent;
 import com.pxene.dmp.common.CookieTools;
 import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.TimeConstant;
-import com.pxene.dmp.domain.BuyCarEvent;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -71,14 +71,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 
 	@Override
 	public void visit(Page page) {
-		String url = page.getWebURL().getURL();
-		Pattern pattern = Pattern.compile(REGEX4AUTO_USER);
-		Matcher matcher = pattern.matcher(url);
-
-		if (matcher.find()) {
-			logger.info("URL: " + url);
-			getUserInfo(url);
-		}
+		visitUserPage(page);
 	}
 
 	/**
@@ -86,10 +79,13 @@ public class Crawler4AutohomeUser extends WebCrawler {
 	 * 
 	 * @param url用户个人主页的地址
 	 */
-	private void getUserInfo(String url) {
+	private void visitUserPage(Page page) {
 		/**
 		 * 抓取用户id
 		 */
+		String url = page.getWebURL().getURL();
+		Pattern pattern = Pattern.compile(REGEX4AUTO_USER);
+		Matcher matcher = pattern.matcher(url);
 		Map<String, byte[]> family = new HashMap<>();
 		String userId = url.substring(url.lastIndexOf("/") + 1, url.length());
 		String rowKey = CODE4AUTO + "_" + url.substring(url.lastIndexOf("/") + 1, url.length());

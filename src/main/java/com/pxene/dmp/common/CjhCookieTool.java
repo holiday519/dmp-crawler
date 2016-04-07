@@ -13,7 +13,7 @@ import org.jsoup.Connection;
 import org.jsoup.Connection.Method;
 import org.jsoup.Jsoup;
 
-public class CookieTool {
+public class CjhCookieTool {
 	private static final String USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
 	private static Map<String, String> str2Map(String str){
 		Map<String, String> map=new HashMap<>();

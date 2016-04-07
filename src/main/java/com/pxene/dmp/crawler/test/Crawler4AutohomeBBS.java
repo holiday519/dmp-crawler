@@ -1,4 +1,4 @@
-package com.pxene.dmp.crawler.autocode;
+package com.pxene.dmp.crawler.test;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -13,7 +13,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.google.gson.Gson;
-import com.pxene.dmp.domain.BBS;
+import com.pxene.dmp.autocode.vo.BBS;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -41,6 +41,14 @@ public class Crawler4AutohomeBBS extends WebCrawler {
 
 	@Override
 	public void visit(Page page) {
+		visitBBSPage(page);
+	}
+
+	/**
+	 * 抓取BBS信息
+	 * @param page
+	 */
+	private void visitBBSPage(Page page) {
 		String url = page.getWebURL().getURL();
 		List<StringBuffer> bbsInfoLists = new ArrayList<StringBuffer>();
 		if (url.matches(REGEX4AUTO_BBSMAIN)) {
@@ -97,5 +105,5 @@ public class Crawler4AutohomeBBS extends WebCrawler {
 				e.printStackTrace();
 			}
 		}
-	};
+	}
 }

@@ -1,4 +1,4 @@
-package com.pxene.dmp.domain;
+package com.pxene.dmp.autocode.vo;
 
 /**
  * 单个帖子，用来转化json串

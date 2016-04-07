@@ -1,4 +1,4 @@
-package com.pxene.dmp.domain;
+package com.pxene.dmp.autocode.vo;
 
 /**
  * 描述用户的一次购买汽车行为,对应buy_cars里的一个json对象
