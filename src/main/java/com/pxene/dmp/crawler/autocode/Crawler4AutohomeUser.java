@@ -71,97 +71,102 @@ public class Crawler4AutohomeUser extends WebCrawler {
 
 	@Override
 	public void visit(Page page) {
-		Map<String, Map<String, byte[]>> data = new HashMap<>();
-		Map<String, byte[]> family = new HashMap<>();
 		String url = page.getWebURL().getURL();
-		logger.info("URL: " + url);
 		Pattern pattern = Pattern.compile(REGEX4AUTO_USER);
 		Matcher matcher = pattern.matcher(url);
 
 		if (matcher.find()) {
+			logger.info("URL: " + url);
+			getUserInfo(url);
+		}
+	}
+
+	/**
+	 * 抓取用户信息的主逻辑方法
+	 * 
+	 * @param url用户个人主页的地址
+	 */
+	private void getUserInfo(String url) {
+		/**
+		 * 抓取用户id
+		 */
+		Map<String, byte[]> family = new HashMap<>();
+		String userId = url.substring(url.lastIndexOf("/") + 1, url.length());
+		String rowKey = CODE4AUTO + "_" + url.substring(url.lastIndexOf("/") + 1, url.length());
+		// System.out.println("rowKey:" + "==============" + rowKey);
+		try {
+			Document doc = Jsoup.connect(url).userAgent(USER_AGENT).timeout(5000).get();
+
 			/**
-			 * 抓取用户id
+			 * 抓取用户名称
 			 */
-			String userId = url.substring(url.lastIndexOf("/") + 1, url.length());
-			System.out.println(userId);
-			String rowKey = CODE4AUTO + "_" + url.substring(url.lastIndexOf("/") + 1, url.length());
-			// System.out.println("rowKey:" + "==============" + rowKey);
-			try {
-				Document doc = Jsoup.connect(url).userAgent(USER_AGENT).timeout(5000).get();
-
-				/**
-				 * 抓取用户名称
-				 */
-				Elements userNameTemp = doc.getElementById("subContainer").select("h1[class]>b");
-				if (userNameTemp.size() > 0) {
-					String userName = userNameTemp.get(0).text();
-					// System.out.println("用户名:" + "==============" + userName);
-					family.put("user_name", Bytes.toBytes(userName));
-				}
-
-				/**
-				 * 抓取用户性别
-				 */
-				Elements userSexTemp = doc.getElementById("subContainer").select("h1>span");
-				if (userSexTemp.size() > 0) {
-					String userSex = userSexTemp.get(0).attr("class");
-					userSex = userSex.equals("man") ? "0" : "1";
-					// System.out.println("性别:" + "==============" + userSex);
-					family.put("sex", Bytes.toBytes(userSex));
-				}
-
-				/**
-				 * 抓取用户的地址
-				 */
-				Elements userAdressTemp = doc.select("a[class=state-pos]");
-				if (userAdressTemp.size() > 0) {
-					String userAdress = userAdressTemp.get(0).text();
-					// System.out.println("用户地址:" + "==============" +
-					// userAdress);
-					family.put("city", Bytes.toBytes(userAdress));
-				}
-				/**
-				 * 抓取用户的生日
-				 */
-				Document birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).timeout(5000).cookies(cookies)
-						.get();
-				Element divuserinfo = birthDoc.getElementById("divuserinfo");
-				if (divuserinfo == null) {
-					// 说明登陆失败,更新cookie
-					CookieTools.update(LOGIN_FILE_NAME, LOGIN_URL, COOKIES_FILE_NAME);
-					this.cookies = CookieTools.loadCookies(COOKIES_FILE_NAME);
-					birthDoc = Jsoup.connect(url + "/info").timeout(5000).userAgent(USER_AGENT).cookies(cookies).get();
-					divuserinfo = birthDoc.getElementById("divuserinfo");
-				}
-				Elements birthTemp = divuserinfo.select("p");
-				for (Element element : birthTemp) {
-					if (element.select("span").text().contains("生日")) {
-						String birthday = element.text().substring(element.text().indexOf("生日") + 3).trim();
-						// System.out.println("用户生日：======" + birthday);
-						family.put("birthday", Bytes.toBytes(birthday));
-					}
-				}
-				/**
-				 * 抓取认证汽车，关注汽车，正在使用汽车信息
-				 */
-				getCarsInfo(url, family);
-				/**
-				 * 抓取用户购买汽车行为信息
-				 */
-				getBuyCarsInfo(userId, family);
-
-				data.put("user_info", family);
-				// StringBuffer loginfo = new StringBuffer();
-				// for (String key : family.keySet()) {
-				// loginfo.append(key + "=" + Bytes.toString(family.get(key)) +
-				// ", ");
-				// }
-				// logger.info("URL:" + url + " " + rowKey + " user_info:[" +
-				// loginfo.toString() + "]");
-				HBaseTools.putData(userInfo, rowKey, data);
-			} catch (IOException e) {
-				e.printStackTrace();
+			Elements userNameTemp = doc.getElementById("subContainer").select("h1[class]>b");
+			if (userNameTemp.size() > 0) {
+				String userName = userNameTemp.get(0).text();
+				// System.out.println("用户名:" + "==============" + userName);
+				family.put("user_name", Bytes.toBytes(userName));
 			}
+
+			/**
+			 * 抓取用户性别
+			 */
+			Elements userSexTemp = doc.getElementById("subContainer").select("h1>span");
+			if (userSexTemp.size() > 0) {
+				String userSex = userSexTemp.get(0).attr("class");
+				userSex = userSex.equals("man") ? "0" : "1";
+				// System.out.println("性别:" + "==============" + userSex);
+				family.put("sex", Bytes.toBytes(userSex));
+			}
+
+			/**
+			 * 抓取用户的地址
+			 */
+			Elements userAdressTemp = doc.select("a[class=state-pos]");
+			if (userAdressTemp.size() > 0) {
+				String userAdress = userAdressTemp.get(0).text();
+				// System.out.println("用户地址:" + "==============" +
+				// userAdress);
+				family.put("city", Bytes.toBytes(userAdress));
+			}
+			/**
+			 * 抓取用户的生日
+			 */
+			Document birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).timeout(5000).cookies(cookies).get();
+			Element divuserinfo = birthDoc.getElementById("divuserinfo");
+			if (divuserinfo == null) {
+				// 说明登陆失败,更新cookie
+				CookieTools.update(LOGIN_FILE_NAME, LOGIN_URL, COOKIES_FILE_NAME);
+				this.cookies = CookieTools.loadCookies(COOKIES_FILE_NAME);
+				birthDoc = Jsoup.connect(url + "/info").timeout(5000).userAgent(USER_AGENT).cookies(cookies).get();
+				divuserinfo = birthDoc.getElementById("divuserinfo");
+			}
+			Elements birthTemp = divuserinfo.select("p");
+			for (Element element : birthTemp) {
+				if (element.select("span").text().contains("生日")) {
+					String birthday = element.text().substring(element.text().indexOf("生日") + 3).trim();
+					// System.out.println("用户生日：======" + birthday);
+					family.put("birthday", Bytes.toBytes(birthday));
+				}
+			}
+			/**
+			 * 抓取认证汽车，关注汽车，正在使用汽车信息
+			 */
+			getCarsInfo(url, family);
+			/**
+			 * 抓取用户购买汽车行为信息
+			 */
+			getBuyCarsInfo(userId, family);
+
+			// StringBuffer loginfo = new StringBuffer();
+			// for (String key : family.keySet()) {
+			// loginfo.append(key + "=" + Bytes.toString(family.get(key)) +
+			// ", ");
+			// }
+			// logger.info("URL:" + url + " " + rowKey + " user_info:[" +
+			// loginfo.toString() + "]");
+			HBaseTools.putColumnDatas(userInfo, rowKey, "user_info", family);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -316,6 +321,7 @@ public class Crawler4AutohomeUser extends WebCrawler {
 			family.put("using_car", Bytes.toBytes(userUsingCarsId.substring(0, userUsingCarsId.length() - 1)));
 		}
 		if (userAuthCarsId.length() > 0) {
+			// 说明有认证的车
 			family.put("auth_car", Bytes.toBytes(userAuthCarsId.substring(0, userAuthCarsId.length() - 1)));
 		}
 

@@ -24,7 +24,7 @@ import com.google.gson.stream.JsonReader;
  */
 public class CookieTools {
 	private final static String LOGIN_FILE_NAME = "autohome_login.properties";
-	private final static String COOKIES_FILE_NAME = "cookies.json";
+	// private final static String COOKIES_FILE_NAME = "cookies.json";
 	private final static String LOGIN_URL = "http://account.autohome.com.cn/Login/ValidIndex";
 	private final static Gson gson = new Gson();
 

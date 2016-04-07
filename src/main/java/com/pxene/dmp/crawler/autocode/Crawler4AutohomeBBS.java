@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,12 +23,11 @@ public class Crawler4AutohomeBBS extends WebCrawler {
 	private final static String REGEX4AUTO_USER = "^http://i.autohome.com.cn/([0-9]+)$";
 	private final static String REGEX4AUTO_BBSMAIN = "^http://i.autohome.com.cn/([0-9]*)/club/topic$";
 	private final static Gson gson = new Gson();
-	private final static String SPLIT = new String(Bytes.toBytes("0x01"));
+	private final static char SPLIT = 0x01;
 	private static BufferedWriter bw = null;
 	static {
 		try {
-			/// data/user/yanghua/xu/bbsdata.txt
-			bw = new BufferedWriter(new FileWriter("D://bbstest.txt", true));
+			bw = new BufferedWriter(new FileWriter("/data/user/yanghua/xu/bbsdata.txt", true));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -45,9 +44,10 @@ public class Crawler4AutohomeBBS extends WebCrawler {
 		String url = page.getWebURL().getURL();
 		List<StringBuffer> bbsInfoLists = new ArrayList<StringBuffer>();
 		if (url.matches(REGEX4AUTO_BBSMAIN)) {
+			Logger.getLogger(this.getClass()).info("URL: " + url);
 			try {
 				String userID = url.substring(url.indexOf("cn") + 3, url.indexOf("club") - 1);
-				String pageUrl = "http://i.service.autohome.com.cn/clubapp/OtherTopic-" + "5265908" + "-all-1.html";
+				String pageUrl = "http://i.service.autohome.com.cn/clubapp/OtherTopic-" + userID + "-all-1.html";
 				Document doc = Jsoup.connect(pageUrl).get();
 				while (true) {
 					Elements bbsLists = doc.select("table[class=topicList]>tbody>tr");
@@ -60,23 +60,23 @@ public class Crawler4AutohomeBBS extends WebCrawler {
 						// 帖子唯一标识
 						String bbsidTemp = titleTemp.get(0).select("a").attr("href");
 						String bbsid = bbsidTemp.substring(bbsidTemp.indexOf("thread") + 7, bbsidTemp.lastIndexOf("-"));
-						bbsInfo.append(bbsid + SPLIT + userID);
+						bbsInfo.append(bbsid + SPLIT + "" + userID);
 						// 标题
 						String title = titleTemp.get(0).select("a").text();
-						bbsInfo.append(SPLIT + title);
+						bbsInfo.append(SPLIT + "" + title);
 						// 来自那个论坛
 						String fromBBS = titleTemp.get(1).select("a").text();
-						bbsInfo.append(SPLIT + fromBBS);
+						bbsInfo.append(SPLIT + "" + fromBBS);
 						// 点击数,回复数
 						// 返回一个json串
 						Document replyDoc = Jsoup.connect("http://i.service.autohome.com.cn/clubapp/rv?ids="
 								+ bbsid.substring(bbsid.lastIndexOf("-") + 1)).get();
 						BBS replys_views = gson.fromJson(replyDoc.text().substring(1, replyDoc.text().length() - 1),
 								BBS.class);
-						bbsInfo.append(SPLIT + replys_views.getReplys() + SPLIT + replys_views.getViews());
+						bbsInfo.append(SPLIT + "" + replys_views.getReplys() + SPLIT + "" + replys_views.getViews());
 						// 发表时间
 						String time = bbs.select("td[class=txtCen]").get(1).text();
-						bbsInfo.append(SPLIT + time.trim());
+						bbsInfo.append(SPLIT + "" + time.trim());
 						bbsInfoLists.add(bbsInfo);
 					}
 					// 写入文件
