@@ -99,17 +99,21 @@ public class Crawler4Autohome extends WebCrawler {
 	private static JsonArray cityList = areaJson.get("cityList").getAsJsonArray();
 
 	
+	private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" + "|png|tiff?|mid|mp2|mp3|mp4"  
+	        + "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");  
 	
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
-		return url.getURL().matches(SITE_REGEX);
+		String href = url.getURL().toLowerCase();  
+		boolean isCar=href.matches("^http://www.autohome.com.cn/([\\d]*)/$|^http://car.autohome.com.cn/config/series/([\\d]*).html$|^http://www.autohome.com.cn/spec/([\\d]*)/$");
+		return !FILTERS.matcher(href).matches() && isCar;
 	}
 	
 	@Override
 	public void visit(Page page) {
 		visitSpecPage(page);
-		visitBBSPage(page);
-		visitUserPage(page);
+//		visitBBSPage(page);
+//		visitUserPage(page);
 	}
 
 	/**

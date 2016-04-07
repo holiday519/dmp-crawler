@@ -1,6 +1,7 @@
 {
 	autocode.Crawler4Autohome : [
-		"http://www.autohome.com.cn/beijing/"
+		"http://club.autohome.com.cn/",
+		"http://www.autohome.com.cn/car/"
 	],		
 	autocode.Crawler4AutohomeUser : [
 		"http://club.autohome.com.cn/"	
