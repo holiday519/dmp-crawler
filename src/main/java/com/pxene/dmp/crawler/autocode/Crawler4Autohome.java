@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +19,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -35,22 +33,12 @@ import com.pxene.dmp.autocode.vo.BBS;
 import com.pxene.dmp.autocode.vo.BuyCarEvent;
 import com.pxene.dmp.common.CookieTools;
 import com.pxene.dmp.common.HBaseTools;
-import com.pxene.dmp.common.ProxyTool;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.common.TimeConstant;
 import com.pxene.dmp.crawler.test.Crawler4AutohomeUser;
-import com.pxene.dmp.main.CrawlerManager;
 
-import edu.uci.ics.crawler4j.crawler.CrawlConfig;
-import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
-import edu.uci.ics.crawler4j.crawler.authentication.AuthInfo;
-import edu.uci.ics.crawler4j.crawler.authentication.BasicAuthInfo;
-import edu.uci.ics.crawler4j.fetcher.PageFetcher;
-import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
-import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
-import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4Autohome extends WebCrawler {
@@ -58,20 +46,20 @@ public class Crawler4Autohome extends WebCrawler {
 	private static final String USERAGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
 	// 网站url（配置全站的url才能将url抓全）
 	private static final String SITE_REGEX = "^http://.*?\\.autohome\\.com\\.cn/.*?";
-	
+
 	/**
 	 * 提取style信息的url
 	 */
 	private static final String STYLE_REGEX = "^http://www\\.autohome\\.com\\.cn/spec/[\\d]*/$";
-	
+
 	private static final String TABLE_NAME = "t_auto_autoinfo";
-	
+
 	private static final String FAMILY_NAME = "auto_info";
-	
+
 	private static final String ROWKEY_PREFIX = "00030005_";
-	
+
 	private Log logger = LogFactory.getLog(Crawler4Autohome.class);
-	
+
 	/**
 	 * 抓取BBS信息需要的常量
 	 */
@@ -79,12 +67,13 @@ public class Crawler4Autohome extends WebCrawler {
 	private final static String REGEX4AUTO_BBSMAIN = "^http://i.autohome.com.cn/([0-9]*)/club/topic$";
 	private final static Gson gson = new Gson();
 	private final static char SPLIT = 0x01;
-	
-	
+
 	/**
 	 * 抓取用户信息需要的常量
 	 */
-	
+	private final static String REGEX4AUTO_USER_NEXTPAGE = "^http://club.autohome.com.cn/bbs/forum-(a|c|o)-([0-9]*)-([0-9]*)(\\.)html(\\?)qatype=-1$";
+	private final static String REGEX4AUTO_USER_CARLIST = "^http://club.autohome.com.cn/bbs/forum-c-([0-9]*)-1.html$";
+	private final static String REGEX4AUTO_USER_BBS = "^http://club.autohome.com.cn/bbs/(thread|threadqa)-(a|c|o)-([0-9]*)-([0-9]*)-([0-9]*).html$";
 	/**
 	 * 模拟登陆的url
 	 */
@@ -94,7 +83,6 @@ public class Crawler4Autohome extends WebCrawler {
 	private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0";
 
 	private final static String CODE4AUTO = "00010005001";
-
 
 	/**
 	 * 配置文件中的cookies信息
@@ -109,98 +97,67 @@ public class Crawler4Autohome extends WebCrawler {
 			JsonObject.class);
 	private static JsonArray cityList = areaJson.get("cityList").getAsJsonArray();
 
-	
-	private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" + "|png|tiff?|mid|mp2|mp3|mp4"  
-	        + "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");  
-	
+	private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" + "|png|tiff?|mid|mp2|mp3|mp4"
+			+ "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
+
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
-		String href = url.getURL().toLowerCase(); 
-		String regex4Car="^http://www.autohome.com.cn/([\\d]*)/$|" 
-				+ "^http://www.autohome.com.cn/car/$"
-				+ "^http://car.autohome.com.cn/config/series/(.*?).html$|"
-				+ "^http://www.autohome.com.cn/spec/([\\d]*)/$|"
-				+ "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|"
-				+ "^http://www.autohome.com.cn/(.*?)/sale.html$";
-		boolean isCar=href.matches(regex4Car);
-		return !FILTERS.matcher(href).matches() && isCar;
+		String href = url.getURL().toLowerCase();
+		boolean isCar = href.matches(
+				"^http://www.autohome.com.cn/([\\d]*)/$|^http://car.autohome.com.cn/config/series/([\\d]*).html$|^http://www.autohome.com.cn/spec/([\\d]*)/$");
+		boolean isUser = href.matches(REGEX4AUTO_USER_CARLIST) || href.matches(REGEX4AUTO_USER_NEXTPAGE)
+				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER);
+		boolean isBBS = href.matches(REGEX4AUTO_USER) || href.matches(REGEX4AUTO_USER_CARLIST)
+				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER_NEXTPAGE);
+		return isUser || isCar || isBBS;
 	}
-	
+
 	@Override
 	public void visit(Page page) {
-		String url=page.getWebURL().getURL();
-		visitSpecPage(url);
-//		visitBBSPage(page);
-//		visitUserPage(page);
+		visitSpecPage(page);
+		visitBBSPage(page);
+		visitUserPage(page);
 	}
 
 	/**
 	 * 抓取汽车详情页
+	 * 
 	 * @param page
 	 */
-	private void visitSpecPage(String url) {
-		//汽车参数页中js串中所有的specid提取出来，拼成url重新抓取具体页
-		if(url.matches("^http://car.autohome.com.cn/config/series/(.*?).html$")){
-			try {
-				Document doc = Jsoup.connect(url).get();
-				Elements script = doc.select("script");
-				Set<String> specId = StringUtils.fullRegexpExtract(script.toString(), "(?<=specid\":)([^,]*)(?=,)");
-				for (String id : specId) {
-					String specUrl="http://www.autohome.com.cn/spec/**/".replace("**", id);
-					System.out.println("********************"+specUrl);
-					visitSpecPage(specUrl);
-				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		//http://www.autohome.com.cn/car/页异步请求的url
-		if(url.matches("http://www.autohome.com.cn/car/")){
-			String base="http://www.autohome.com.cn/grade/carhtml/[].html";
-			for(int i=0;i<26;i++){
-				String carPageUrl=base.replace("[]", (char)('A'+i)+"");
-				CrawlerManager.controller.addSeed(carPageUrl);
-			}
-		}
-		
+	private void visitSpecPage(Page page) {
+		String url = page.getWebURL().getURL();
 		if (url.matches(STYLE_REGEX)) {
-			logger.info("****"+url); //日志打印
+			logger.info("****" + page.getWebURL().getURL()); // 日志打印
 			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
 			try {
-		        
+				// 用用戶代理
+				// Map<String, String> ipInfo = ProxyTool.getIpInfo();
+				// System.getProperties().setProperty("socksProxyHost",ipInfo.get("ip"));
+				// System.getProperties().setProperty("socksProxyPort",
+				// ipInfo.get("port"));
+
 				Document doc = Jsoup.connect(url).timeout(5000).userAgent(USERAGENT).get();
-				String autoId="";
-				if(doc.select(".subnav-title-return a").size()>0){
-					autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/(.*?)/\\?pvareaid=");
-				}
+				String autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"),
+						"/([\\d]*)/\\?pvareaid=");
 				String styleName = doc.select(".subnav-title-name a h1").get(0).text();
-				
-				float price =0;
-				if(doc.select(".cardetail-infor-price ul li").size()>2 &&StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元").length()>0){
-					price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元"));
-				}
+				float price = Float.parseFloat(StringUtils
+						.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：([.\\d]*)万元"));
 				Elements details = doc.select(".cardetail-infor-car ul li");
-				
-				float source=0;
-				if(details.get(0).select("a").size()>1 &&StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分").length()>0){
-					source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分"));
-				}
-				String ownerOil ="";
-				if(details.get(1).select("a").size()>0){
-					ownerOil = details.get(1).select("a").get(0).text();
-				}
+				float source = Float
+						.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "([.\\d]*)分"));
+				String ownerOil = details.get(1).select("a").get(0).text();
 				String size = details.get(2).ownText();
 				String commonOil = details.get(3).ownText();
 				String struct = details.get(4).ownText();
 				String pqa = details.get(5).ownText();
 				String engine = details.get(6).ownText();
 				String gearbox = details.get(7).ownText();
-				
-				//提取返回的url
+
+				// 提取返回的url
 				String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
-				String autoName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get().select("div.subnav-title-name a").first().text();
-				
+				String autoName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get()
+						.select("div.subnav-title-name a").first().text();
+
 				Map<String, byte[]> datas = new HashMap<String, byte[]>();
 				datas.put("style_name", Bytes.toBytes(styleName));
 				datas.put("auto_name", Bytes.toBytes(autoName));
@@ -213,7 +170,7 @@ public class Crawler4Autohome extends WebCrawler {
 				datas.put("pqa", Bytes.toBytes(pqa));
 				datas.put("engine", Bytes.toBytes(engine));
 				datas.put("gearbox", Bytes.toBytes(gearbox));
-				
+
 				HTableInterface table = HBaseTools.openTable(TABLE_NAME);
 				if (table != null) {
 					String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
@@ -225,7 +182,7 @@ public class Crawler4Autohome extends WebCrawler {
 			}
 		}
 	}
-	
+
 	/**
 	 * 抓取用户信息的主逻辑方法
 	 * 
@@ -236,86 +193,91 @@ public class Crawler4Autohome extends WebCrawler {
 		 * 抓取用户id
 		 */
 		String url = page.getWebURL().getURL();
+		logger.info(url);
 		Pattern pattern = Pattern.compile(REGEX4AUTO_USER);
 		Matcher matcher = pattern.matcher(url);
-		Map<String, byte[]> family = new HashMap<>();
-		String userId = url.substring(url.lastIndexOf("/") + 1, url.length());
-		String rowKey = CODE4AUTO + "_" + url.substring(url.lastIndexOf("/") + 1, url.length());
-		// System.out.println("rowKey:" + "==============" + rowKey);
-		try {
-			Document doc = Jsoup.connect(url).userAgent(USER_AGENT).timeout(5000).get();
+		if (matcher.find()) {
+			Map<String, byte[]> family = new HashMap<>();
+			String userId = url.substring(url.lastIndexOf("/") + 1, url.length());
+			String rowKey = CODE4AUTO + "_" + url.substring(url.lastIndexOf("/") + 1, url.length());
+			// System.out.println("rowKey:" + "==============" + rowKey);
+			try {
+				Document doc = Jsoup.connect(url).userAgent(USER_AGENT).timeout(5000).get();
 
-			/**
-			 * 抓取用户名称
-			 */
-			Elements userNameTemp = doc.getElementById("subContainer").select("h1[class]>b");
-			if (userNameTemp.size() > 0) {
-				String userName = userNameTemp.get(0).text();
-				// System.out.println("用户名:" + "==============" + userName);
-				family.put("user_name", Bytes.toBytes(userName));
-			}
-
-			/**
-			 * 抓取用户性别
-			 */
-			Elements userSexTemp = doc.getElementById("subContainer").select("h1>span");
-			if (userSexTemp.size() > 0) {
-				String userSex = userSexTemp.get(0).attr("class");
-				userSex = userSex.equals("man") ? "0" : "1";
-				// System.out.println("性别:" + "==============" + userSex);
-				family.put("sex", Bytes.toBytes(userSex));
-			}
-
-			/**
-			 * 抓取用户的地址
-			 */
-			Elements userAdressTemp = doc.select("a[class=state-pos]");
-			if (userAdressTemp.size() > 0) {
-				String userAdress = userAdressTemp.get(0).text();
-				// System.out.println("用户地址:" + "==============" +
-				// userAdress);
-				family.put("city", Bytes.toBytes(userAdress));
-			}
-			/**
-			 * 抓取用户的生日
-			 */
-			Document birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).timeout(5000).cookies(cookies).get();
-			Element divuserinfo = birthDoc.getElementById("divuserinfo");
-			if (divuserinfo == null) {
-				// 说明登陆失败,更新cookie
-				CookieTools.update(LOGIN_FILE_NAME, LOGIN_URL, COOKIES_FILE_NAME);
-				this.cookies = CookieTools.loadCookies(COOKIES_FILE_NAME);
-				birthDoc = Jsoup.connect(url + "/info").timeout(5000).userAgent(USER_AGENT).cookies(cookies).get();
-				divuserinfo = birthDoc.getElementById("divuserinfo");
-			}
-			Elements birthTemp = divuserinfo.select("p");
-			for (Element element : birthTemp) {
-				if (element.select("span").text().contains("生日")) {
-					String birthday = element.text().substring(element.text().indexOf("生日") + 3).trim();
-					// System.out.println("用户生日：======" + birthday);
-					family.put("birthday", Bytes.toBytes(birthday));
+				/**
+				 * 抓取用户名称
+				 */
+				Elements userNameTemp = doc.getElementById("subContainer").select("h1[class]>b");
+				if (userNameTemp.size() > 0) {
+					String userName = userNameTemp.get(0).text();
+					// System.out.println("用户名:" + "==============" + userName);
+					family.put("user_name", Bytes.toBytes(userName));
 				}
-			}
-			/**
-			 * 抓取认证汽车，关注汽车，正在使用汽车信息
-			 */
-			getCarsInfo(url, family);
-			/**
-			 * 抓取用户购买汽车行为信息
-			 */
-			getBuyCarsInfo(userId, family);
 
-			// StringBuffer loginfo = new StringBuffer();
-			// for (String key : family.keySet()) {
-			// loginfo.append(key + "=" + Bytes.toString(family.get(key)) +
-			// ", ");
-			// }
-			// logger.info("URL:" + url + " " + rowKey + " user_info:[" +
-			// loginfo.toString() + "]");
-			HBaseTools.putColumnDatas(userInfo, rowKey, "user_info", family);
-		} catch (IOException e) {
-			e.printStackTrace();
+				/**
+				 * 抓取用户性别
+				 */
+				Elements userSexTemp = doc.getElementById("subContainer").select("h1>span");
+				if (userSexTemp.size() > 0) {
+					String userSex = userSexTemp.get(0).attr("class");
+					userSex = userSex.equals("man") ? "0" : "1";
+					// System.out.println("性别:" + "==============" + userSex);
+					family.put("sex", Bytes.toBytes(userSex));
+				}
+
+				/**
+				 * 抓取用户的地址
+				 */
+				Elements userAdressTemp = doc.select("a[class=state-pos]");
+				if (userAdressTemp.size() > 0) {
+					String userAdress = userAdressTemp.get(0).text();
+					// System.out.println("用户地址:" + "==============" +
+					// userAdress);
+					family.put("city", Bytes.toBytes(userAdress));
+				}
+				/**
+				 * 抓取用户的生日
+				 */
+				Document birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).timeout(5000).cookies(cookies)
+						.get();
+				Element divuserinfo = birthDoc.getElementById("divuserinfo");
+				if (divuserinfo == null) {
+					// 说明登陆失败,更新cookie
+					CookieTools.update(LOGIN_FILE_NAME, LOGIN_URL, COOKIES_FILE_NAME);
+					this.cookies = CookieTools.loadCookies(COOKIES_FILE_NAME);
+					birthDoc = Jsoup.connect(url + "/info").timeout(5000).userAgent(USER_AGENT).cookies(cookies).get();
+					divuserinfo = birthDoc.getElementById("divuserinfo");
+				}
+				Elements birthTemp = divuserinfo.select("p");
+				for (Element element : birthTemp) {
+					if (element.select("span").text().contains("生日")) {
+						String birthday = element.text().substring(element.text().indexOf("生日") + 3).trim();
+						// System.out.println("用户生日：======" + birthday);
+						family.put("birthday", Bytes.toBytes(birthday));
+					}
+				}
+				/**
+				 * 抓取认证汽车，关注汽车，正在使用汽车信息
+				 */
+				getCarsInfo(url, family);
+				/**
+				 * 抓取用户购买汽车行为信息
+				 */
+				getBuyCarsInfo(userId, family);
+
+				// StringBuffer loginfo = new StringBuffer();
+				// for (String key : family.keySet()) {
+				// loginfo.append(key + "=" + Bytes.toString(family.get(key)) +
+				// ", ");
+				// }
+				// logger.info("URL:" + url + " " + rowKey + " user_info:[" +
+				// loginfo.toString() + "]");
+				HBaseTools.putColumnDatas(userInfo, rowKey, "user_info", family);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
+
 	}
 
 	/**
@@ -474,22 +436,24 @@ public class Crawler4Autohome extends WebCrawler {
 		}
 
 	}
-	
+
 	/**
 	 * 抓取BBS信息
+	 * 
 	 * @param page
 	 */
 	private void visitBBSPage(Page page) {
 		String url = page.getWebURL().getURL();
-		List<StringBuffer> bbsInfoLists = new ArrayList<StringBuffer>();
-		if (url.matches(REGEX4AUTO_BBSMAIN)) {
-			BufferedWriter bw=null;
+		if (url.matches(REGEX4AUTO_USER)) {
+			BufferedWriter bw = null;
 			Logger.getLogger(this.getClass()).info("URL: " + url);
 			try {
-				String userID = url.substring(url.indexOf("cn") + 3, url.indexOf("club") - 1);
+				String userID = url.substring(url.lastIndexOf("/") + 1, url.length());
 				String pageUrl = "http://i.service.autohome.com.cn/clubapp/OtherTopic-" + userID + "-all-1.html";
 				Document doc = Jsoup.connect(pageUrl).get();
+				List<StringBuffer> bbsInfoLists = null;
 				while (true) {
+					bbsInfoLists = new ArrayList<StringBuffer>();
 					Elements bbsLists = doc.select("table[class=topicList]>tbody>tr");
 					for (Element bbs : bbsLists) {
 						StringBuffer bbsInfo = new StringBuffer();
@@ -536,7 +500,7 @@ public class Crawler4Autohome extends WebCrawler {
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-			}finally{
+			} finally {
 				try {
 					bw.close();
 				} catch (IOException e) {

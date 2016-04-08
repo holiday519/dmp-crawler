@@ -20,8 +20,14 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4AutohomeBBS extends WebCrawler {
+	private final static String REGEX4AUTO_USER_NEXTPAGE = "^http://club.autohome.com.cn/bbs/forum-(a|c|o)-([0-9]*)-([0-9]*)(\\.)html(\\?)qatype=-1$";
+	private final static String REGEX4AUTO_USER_CARLIST = "^http://club.autohome.com.cn/bbs/forum-c-([0-9]*)-1.html$";
+
+	private final static String REGEX4AUTO_USER_BBS = "^http://club.autohome.com.cn/bbs/(thread|threadqa)-(a|c|o)-([0-9]*)-([0-9]*)-([0-9]*).html$";
+
 	private final static String REGEX4AUTO_USER = "^http://i.autohome.com.cn/([0-9]+)$";
-	private final static String REGEX4AUTO_BBSMAIN = "^http://i.autohome.com.cn/([0-9]*)/club/topic$";
+	// private final static String REGEX4AUTO_BBSMAIN =
+	// "^http://i.autohome.com.cn/([0-9]*)/club/topic$";
 	private final static Gson gson = new Gson();
 	private final static char SPLIT = 0x01;
 	private static BufferedWriter bw = null;
@@ -35,8 +41,10 @@ public class Crawler4AutohomeBBS extends WebCrawler {
 
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
-		String urlStr = url.getURL().toLowerCase();
-		return urlStr.matches(REGEX4AUTO_BBSMAIN) || urlStr.matches(REGEX4AUTO_USER);
+		String href = url.getURL().toLowerCase();
+		boolean isBBS = href.matches(REGEX4AUTO_USER) || href.matches(REGEX4AUTO_USER_CARLIST)
+				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER_NEXTPAGE);
+		return isBBS;
 	}
 
 	@Override
@@ -46,18 +54,21 @@ public class Crawler4AutohomeBBS extends WebCrawler {
 
 	/**
 	 * 抓取BBS信息
+	 * 
 	 * @param page
 	 */
 	private void visitBBSPage(Page page) {
 		String url = page.getWebURL().getURL();
-		List<StringBuffer> bbsInfoLists = new ArrayList<StringBuffer>();
-		if (url.matches(REGEX4AUTO_BBSMAIN)) {
+		// System.out.println(url);
+		if (url.matches(REGEX4AUTO_USER)) {
 			Logger.getLogger(this.getClass()).info("URL: " + url);
 			try {
-				String userID = url.substring(url.indexOf("cn") + 3, url.indexOf("club") - 1);
+				String userID = url.substring(url.lastIndexOf("/") + 1, url.length());
 				String pageUrl = "http://i.service.autohome.com.cn/clubapp/OtherTopic-" + userID + "-all-1.html";
 				Document doc = Jsoup.connect(pageUrl).get();
+				List<StringBuffer> bbsInfoLists = null;
 				while (true) {
+					bbsInfoLists = new ArrayList<StringBuffer>();
 					Elements bbsLists = doc.select("table[class=topicList]>tbody>tr");
 					for (Element bbs : bbsLists) {
 						StringBuffer bbsInfo = new StringBuffer();

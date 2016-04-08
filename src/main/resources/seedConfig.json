@@ -1,12 +1,11 @@
 {
 	autocode.Crawler4Autohome : [
-		"http://club.autohome.com.cn/",
-		"http://www.autohome.com.cn/car/"
+		"http://club.autohome.com.cn/"
 	],		
 	autocode.Crawler4AutohomeUser : [
 		"http://club.autohome.com.cn/"	
 	],
-	autocode.Crawler4AutohomeBBS : [
+	test.Crawler4AutohomeBBS : [
 		"http://club.autohome.com.cn/"	
 	]
 }
