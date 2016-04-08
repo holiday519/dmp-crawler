@@ -23,7 +23,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class CrawlerManager {
 	private static final String USERAGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
-
+	public static CrawlController controller;
 	public static void main(String[] args) throws Exception {
 		// 基本配置
 		final String packageName = "com.pxene.dmp.crawler";
@@ -61,7 +61,7 @@ public class CrawlerManager {
 			robotstxtConfig.setEnabled(false);
 			robotstxtConfig.setUserAgentName(USERAGENT);
 			RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-			CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+			controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
 			for (String seed : SeedConfig.getSeeds(className)) {
 				controller.addSeed(seed);

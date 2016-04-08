@@ -36,6 +36,7 @@ import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.common.TimeConstant;
 import com.pxene.dmp.crawler.test.Crawler4AutohomeUser;
+import com.pxene.dmp.main.CrawlerManager;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -103,8 +104,13 @@ public class Crawler4Autohome extends WebCrawler {
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
 		String href = url.getURL().toLowerCase();
-		boolean isCar = href.matches(
-				"^http://www.autohome.com.cn/([\\d]*)/$|^http://car.autohome.com.cn/config/series/([\\d]*).html$|^http://www.autohome.com.cn/spec/([\\d]*)/$");
+		String regex4Car="^http://www.autohome.com.cn/([\\d]*)/$|" 
+				+ "^http://www.autohome.com.cn/car/$"
+				+ "^http://car.autohome.com.cn/config/series/(.*?).html$|"
+				+ "^http://www.autohome.com.cn/spec/([\\d]*)/$|"
+				+ "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|"
+				+ "^http://www.autohome.com.cn/(.*?)/sale.html$";
+		boolean isCar = href.matches(regex4Car);
 		boolean isUser = href.matches(REGEX4AUTO_USER_CARLIST) || href.matches(REGEX4AUTO_USER_NEXTPAGE)
 				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER);
 		boolean isBBS = href.matches(REGEX4AUTO_USER) || href.matches(REGEX4AUTO_USER_CARLIST)
@@ -114,9 +120,10 @@ public class Crawler4Autohome extends WebCrawler {
 
 	@Override
 	public void visit(Page page) {
-		visitSpecPage(page);
-		visitBBSPage(page);
-		visitUserPage(page);
+		String url=page.getWebURL().getURL();
+		visitSpecPage(url);
+//		visitBBSPage(page);
+//		visitUserPage(page);
 	}
 
 	/**
@@ -124,63 +131,92 @@ public class Crawler4Autohome extends WebCrawler {
 	 * 
 	 * @param page
 	 */
-	private void visitSpecPage(Page page) {
-		String url = page.getWebURL().getURL();
-		if (url.matches(STYLE_REGEX)) {
-			logger.info("****" + page.getWebURL().getURL()); // 日志打印
-			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
-			try {
-				// 用用戶代理
-				// Map<String, String> ipInfo = ProxyTool.getIpInfo();
-				// System.getProperties().setProperty("socksProxyHost",ipInfo.get("ip"));
-				// System.getProperties().setProperty("socksProxyPort",
-				// ipInfo.get("port"));
-
-				Document doc = Jsoup.connect(url).timeout(5000).userAgent(USERAGENT).get();
-				String autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"),
-						"/([\\d]*)/\\?pvareaid=");
-				String styleName = doc.select(".subnav-title-name a h1").get(0).text();
-				float price = Float.parseFloat(StringUtils
-						.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：([.\\d]*)万元"));
-				Elements details = doc.select(".cardetail-infor-car ul li");
-				float source = Float
-						.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "([.\\d]*)分"));
-				String ownerOil = details.get(1).select("a").get(0).text();
-				String size = details.get(2).ownText();
-				String commonOil = details.get(3).ownText();
-				String struct = details.get(4).ownText();
-				String pqa = details.get(5).ownText();
-				String engine = details.get(6).ownText();
-				String gearbox = details.get(7).ownText();
-
-				// 提取返回的url
-				String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
-				String autoName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get()
-						.select("div.subnav-title-name a").first().text();
-
-				Map<String, byte[]> datas = new HashMap<String, byte[]>();
-				datas.put("style_name", Bytes.toBytes(styleName));
-				datas.put("auto_name", Bytes.toBytes(autoName));
-				datas.put("manu_price", Bytes.toBytes(price));
-				datas.put("source", Bytes.toBytes(source));
-				datas.put("owner_oil", Bytes.toBytes(ownerOil));
-				datas.put("size", Bytes.toBytes(size));
-				datas.put("common_oil", Bytes.toBytes(commonOil));
-				datas.put("struct", Bytes.toBytes(struct));
-				datas.put("pqa", Bytes.toBytes(pqa));
-				datas.put("engine", Bytes.toBytes(engine));
-				datas.put("gearbox", Bytes.toBytes(gearbox));
-
-				HTableInterface table = HBaseTools.openTable(TABLE_NAME);
-				if (table != null) {
-					String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
-					HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
-					HBaseTools.closeTable(table);
+	private void visitSpecPage(String url) {
+		//汽车参数页中js串中所有的specid提取出来，拼成url重新抓取具体页
+				if(url.matches("^http://car.autohome.com.cn/config/series/(.*?).html$")){
+					try {
+						Document doc = Jsoup.connect(url).get();
+						Elements script = doc.select("script");
+						Set<String> specId = StringUtils.fullRegexpExtract(script.toString(), "(?<=specid\":)([^,]*)(?=,)");
+						for (String id : specId) {
+							String specUrl="http://www.autohome.com.cn/spec/**/".replace("**", id);
+							System.out.println("********************"+specUrl);
+							visitSpecPage(specUrl);
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+				//http://www.autohome.com.cn/car/页异步请求的url
+				if(url.matches("http://www.autohome.com.cn/car/")){
+					String base="http://www.autohome.com.cn/grade/carhtml/[].html";
+					for(int i=0;i<26;i++){
+						String carPageUrl=base.replace("[]", (char)('A'+i)+"");
+						CrawlerManager.controller.addSeed(carPageUrl);
+					}
+				}
+				
+				if (url.matches(STYLE_REGEX)) {
+					logger.info("****"+url); //日志打印
+					String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
+					try {
+				        
+						Document doc = Jsoup.connect(url).timeout(5000).userAgent(USERAGENT).get();
+						String autoId="";
+						if(doc.select(".subnav-title-return a").size()>0){
+							autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/(.*?)/\\?pvareaid=");
+						}
+						String styleName = doc.select(".subnav-title-name a h1").get(0).text();
+						
+						float price =0;
+						if(doc.select(".cardetail-infor-price ul li").size()>2 &&StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元").length()>0){
+							price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元"));
+						}
+						Elements details = doc.select(".cardetail-infor-car ul li");
+						
+						float source=0;
+						if(details.get(0).select("a").size()>1 &&StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分").length()>0){
+							source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分"));
+						}
+						String ownerOil ="";
+						if(details.get(1).select("a").size()>0){
+							ownerOil = details.get(1).select("a").get(0).text();
+						}
+						String size = details.get(2).ownText();
+						String commonOil = details.get(3).ownText();
+						String struct = details.get(4).ownText();
+						String pqa = details.get(5).ownText();
+						String engine = details.get(6).ownText();
+						String gearbox = details.get(7).ownText();
+						
+						//提取返回的url
+						String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
+						String autoName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get().select("div.subnav-title-name a").first().text();
+						
+						Map<String, byte[]> datas = new HashMap<String, byte[]>();
+						datas.put("style_name", Bytes.toBytes(styleName));
+						datas.put("auto_name", Bytes.toBytes(autoName));
+						datas.put("manu_price", Bytes.toBytes(price));
+						datas.put("source", Bytes.toBytes(source));
+						datas.put("owner_oil", Bytes.toBytes(ownerOil));
+						datas.put("size", Bytes.toBytes(size));
+						datas.put("common_oil", Bytes.toBytes(commonOil));
+						datas.put("struct", Bytes.toBytes(struct));
+						datas.put("pqa", Bytes.toBytes(pqa));
+						datas.put("engine", Bytes.toBytes(engine));
+						datas.put("gearbox", Bytes.toBytes(gearbox));
+						
+						HTableInterface table = HBaseTools.openTable(TABLE_NAME);
+						if (table != null) {
+							String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
+							HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
+							HBaseTools.closeTable(table);
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 	}
 
 	/**
