@@ -25,11 +25,12 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class CrawlerManager {
 	private static final String USERAGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
+	public static CrawlController controller;
 	public static void main(String[] args) throws Exception {
 		// 基本配置
 		final String packageName = "com.pxene.dmp.crawler";
 		String crawlStorageFolder = "temp";
-		int numberOfCrawlers = 10;
+		int numberOfCrawlers = 40;
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("className", true, "input class name of crawler");
@@ -40,7 +41,7 @@ public class CrawlerManager {
 			final String className = line.getOptionValue("className");
 			CrawlConfig config = new CrawlConfig();
 			// 抓取深度
-			//config.setMaxDepthOfCrawling(1);
+//			config.setMaxDepthOfCrawling(0);
 			// 登陆
 			List<AuthInfo> infos = new ArrayList<AuthInfo>();
 			AuthInfo info = new BasicAuthInfo("holiday519", "history422", "http://account.autohome.com.cn/");
@@ -55,7 +56,6 @@ public class CrawlerManager {
 			config.setUserAgentString(USERAGENT);
 			config.setSocketTimeout(5000);
 			config.setConnectionTimeout(5000);
-
 			PageFetcher pageFetcher = new PageFetcher(config);
 			RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
 			// 关闭robot协议
@@ -63,7 +63,7 @@ public class CrawlerManager {
 			robotstxtConfig.setUserAgentName(USERAGENT);
 			RobotstxtServer robotstxtServer = new RobotstxtServer(
 					robotstxtConfig, pageFetcher);
-			CrawlController controller = new CrawlController(config,
+			controller = new CrawlController(config,
 					pageFetcher, robotstxtServer);
 
 			for (String seed : SeedConfig.getSeeds(className)) {
@@ -81,8 +81,10 @@ public class CrawlerManager {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("options", options);
 		}
-
+		
 	}
+	
+	
 
 	
 }

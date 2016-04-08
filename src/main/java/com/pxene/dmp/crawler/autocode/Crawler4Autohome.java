@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -37,9 +39,18 @@ import com.pxene.dmp.common.ProxyTool;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.common.TimeConstant;
 import com.pxene.dmp.crawler.test.Crawler4AutohomeUser;
+import com.pxene.dmp.main.CrawlerManager;
 
+import edu.uci.ics.crawler4j.crawler.CrawlConfig;
+import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
+import edu.uci.ics.crawler4j.crawler.authentication.AuthInfo;
+import edu.uci.ics.crawler4j.crawler.authentication.BasicAuthInfo;
+import edu.uci.ics.crawler4j.fetcher.PageFetcher;
+import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
+import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4Autohome extends WebCrawler {
@@ -104,14 +115,21 @@ public class Crawler4Autohome extends WebCrawler {
 	
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
-		String href = url.getURL().toLowerCase();  
-		boolean isCar=href.matches("^http://www.autohome.com.cn/([\\d]*)/$|^http://car.autohome.com.cn/config/series/([\\d]*).html$|^http://www.autohome.com.cn/spec/([\\d]*)/$");
+		String href = url.getURL().toLowerCase(); 
+		String regex4Car="^http://www.autohome.com.cn/([\\d]*)/$|" 
+				+ "^http://www.autohome.com.cn/car/$"
+				+ "^http://car.autohome.com.cn/config/series/(.*?).html$|"
+				+ "^http://www.autohome.com.cn/spec/([\\d]*)/$|"
+				+ "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|"
+				+ "^http://www.autohome.com.cn/(.*?)/sale.html$";
+		boolean isCar=href.matches(regex4Car);
 		return !FILTERS.matcher(href).matches() && isCar;
 	}
 	
 	@Override
 	public void visit(Page page) {
-		visitSpecPage(page);
+		String url=page.getWebURL().getURL();
+		visitSpecPage(url);
 //		visitBBSPage(page);
 //		visitUserPage(page);
 	}
@@ -120,24 +138,58 @@ public class Crawler4Autohome extends WebCrawler {
 	 * 抓取汽车详情页
 	 * @param page
 	 */
-	private void visitSpecPage(Page page) {
-		String url = page.getWebURL().getURL();
+	private void visitSpecPage(String url) {
+		//汽车参数页中js串中所有的specid提取出来，拼成url重新抓取具体页
+		if(url.matches("^http://car.autohome.com.cn/config/series/(.*?).html$")){
+			try {
+				Document doc = Jsoup.connect(url).get();
+				Elements script = doc.select("script");
+				Set<String> specId = StringUtils.fullRegexpExtract(script.toString(), "(?<=specid\":)([^,]*)(?=,)");
+				for (String id : specId) {
+					String specUrl="http://www.autohome.com.cn/spec/**/".replace("**", id);
+					System.out.println("********************"+specUrl);
+					visitSpecPage(specUrl);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		//http://www.autohome.com.cn/car/页异步请求的url
+		if(url.matches("http://www.autohome.com.cn/car/")){
+			String base="http://www.autohome.com.cn/grade/carhtml/[].html";
+			for(int i=0;i<26;i++){
+				String carPageUrl=base.replace("[]", (char)('A'+i)+"");
+				CrawlerManager.controller.addSeed(carPageUrl);
+			}
+		}
+		
 		if (url.matches(STYLE_REGEX)) {
-			logger.info("****"+page.getWebURL().getURL()); //日志打印
+			logger.info("****"+url); //日志打印
 			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
 			try {
-				//用用戶代理
-//				Map<String, String> ipInfo = ProxyTool.getIpInfo();
-//		        System.getProperties().setProperty("socksProxyHost",ipInfo.get("ip"));
-//		        System.getProperties().setProperty("socksProxyPort", ipInfo.get("port")); 
 		        
 				Document doc = Jsoup.connect(url).timeout(5000).userAgent(USERAGENT).get();
-				String autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/([\\d]*)/\\?pvareaid=");
+				String autoId="";
+				if(doc.select(".subnav-title-return a").size()>0){
+					autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/(.*?)/\\?pvareaid=");
+				}
 				String styleName = doc.select(".subnav-title-name a h1").get(0).text();
-				float price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：([.\\d]*)万元"));
+				
+				float price =0;
+				if(doc.select(".cardetail-infor-price ul li").size()>2 &&StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元").length()>0){
+					price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元"));
+				}
 				Elements details = doc.select(".cardetail-infor-car ul li");
-				float source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "([.\\d]*)分"));
-				String ownerOil = details.get(1).select("a").get(0).text();
+				
+				float source=0;
+				if(details.get(0).select("a").size()>1 &&StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分").length()>0){
+					source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分"));
+				}
+				String ownerOil ="";
+				if(details.get(1).select("a").size()>0){
+					ownerOil = details.get(1).select("a").get(0).text();
+				}
 				String size = details.get(2).ownText();
 				String commonOil = details.get(3).ownText();
 				String struct = details.get(4).ownText();
