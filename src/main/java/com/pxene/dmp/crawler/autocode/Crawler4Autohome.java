@@ -45,15 +45,13 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class Crawler4Autohome extends WebCrawler {
 
 	private static final String USERAGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
-	// 网站url（配置全站的url才能将url抓全）
-	private static final String SITE_REGEX = "^http://.*?\\.autohome\\.com\\.cn/.*?";
 
 	/**
 	 * 提取style信息的url
 	 */
 	private static final String STYLE_REGEX = "^http://www\\.autohome\\.com\\.cn/spec/[\\d]*/$";
 
-	private static final String TABLE_NAME = "t_auto_autoinfo";
+	private static final String TABLE_NAME = "t_auto_autoinfo2";
 
 	private static final String FAMILY_NAME = "auto_info";
 
@@ -101,21 +99,23 @@ public class Crawler4Autohome extends WebCrawler {
 	private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" + "|png|tiff?|mid|mp2|mp3|mp4"
 			+ "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 
+	private static final String regex4Car="^http://www.autohome.com.cn/[1-9a-zA-Z]*/$|" 
+			+ "^http://www.autohome.com.cn/car/.*|"
+			+ "^http://car.autohome.com.cn/price/.*?html$|"
+			+ "^http://car.autohome.com.cn/config/.*?html$|"
+			+ "^http://www.autohome.com.cn/spec/[\\d]*/.*|"
+			+ "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|"
+			+ "^http://www.autohome.com.cn/.*?/sale.html.*";
+	
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
 		String href = url.getURL().toLowerCase();
-		String regex4Car="^http://www.autohome.com.cn/([\\d]*)/$|" 
-				+ "^http://www.autohome.com.cn/car/$"
-				+ "^http://car.autohome.com.cn/config/series/(.*?).html$|"
-				+ "^http://www.autohome.com.cn/spec/([\\d]*)/$|"
-				+ "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|"
-				+ "^http://www.autohome.com.cn/(.*?)/sale.html$";
 		boolean isCar = href.matches(regex4Car);
-		boolean isUser = href.matches(REGEX4AUTO_USER_CARLIST) || href.matches(REGEX4AUTO_USER_NEXTPAGE)
-				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER);
-		boolean isBBS = href.matches(REGEX4AUTO_USER) || href.matches(REGEX4AUTO_USER_CARLIST)
-				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER_NEXTPAGE);
-		return isUser || isCar || isBBS;
+//		boolean isUser = href.matches(REGEX4AUTO_USER_CARLIST) || href.matches(REGEX4AUTO_USER_NEXTPAGE)
+//				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER);
+//		boolean isBBS = href.matches(REGEX4AUTO_USER) || href.matches(REGEX4AUTO_USER_CARLIST)
+//				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER_NEXTPAGE);
+		return isCar ;
 	}
 
 	@Override
@@ -133,7 +133,7 @@ public class Crawler4Autohome extends WebCrawler {
 	 */
 	private void visitSpecPage(String url) {
 		//汽车参数页中js串中所有的specid提取出来，拼成url重新抓取具体页
-				if(url.matches("^http://car.autohome.com.cn/config/series/(.*?).html$")){
+				if(url.matches("^http://car.autohome.com.cn/config/.*html$")){
 					try {
 						Document doc = Jsoup.connect(url).get();
 						Elements script = doc.select("script");
@@ -149,7 +149,7 @@ public class Crawler4Autohome extends WebCrawler {
 					}
 				}
 				//http://www.autohome.com.cn/car/页异步请求的url
-				if(url.matches("http://www.autohome.com.cn/car/")){
+				if(url.matches("^http://www.autohome.com.cn/car/$")){
 					String base="http://www.autohome.com.cn/grade/carhtml/[].html";
 					for(int i=0;i<26;i++){
 						String carPageUrl=base.replace("[]", (char)('A'+i)+"");
@@ -170,14 +170,14 @@ public class Crawler4Autohome extends WebCrawler {
 						String styleName = doc.select(".subnav-title-name a h1").get(0).text();
 						
 						float price =0;
-						if(doc.select(".cardetail-infor-price ul li").size()>2 &&StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元").length()>0){
-							price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))万元"));
+						if(doc.select(".cardetail-infor-price ul li").size()>2 &&StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(.*?)万元").length()>0){
+							price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(.*?)万元"));
 						}
 						Elements details = doc.select(".cardetail-infor-car ul li");
 						
 						float source=0;
-						if(details.get(0).select("a").size()>1 &&StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分").length()>0){
-							source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))分"));
+						if(details.get(0).select("a").size()>1 &&StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(.*?)分").length()>0){
+							source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(.*?)分"));
 						}
 						String ownerOil ="";
 						if(details.get(1).select("a").size()>0){
@@ -192,11 +192,10 @@ public class Crawler4Autohome extends WebCrawler {
 						
 						//提取返回的url
 						String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
-						String autoName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get().select("div.subnav-title-name a").first().text();
+						String brandName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get().select("div.subnav-title-name a").first().text();
 						
 						Map<String, byte[]> datas = new HashMap<String, byte[]>();
-						datas.put("style_name", Bytes.toBytes(styleName));
-						datas.put("auto_name", Bytes.toBytes(autoName));
+						datas.put("auto_name", Bytes.toBytes(brandName+"#"+styleName));
 						datas.put("manu_price", Bytes.toBytes(price));
 						datas.put("source", Bytes.toBytes(source));
 						datas.put("owner_oil", Bytes.toBytes(ownerOil));

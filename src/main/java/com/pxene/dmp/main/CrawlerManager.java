@@ -39,8 +39,8 @@ public class CrawlerManager {
 			final String className = line.getOptionValue("className");
 			CrawlConfig config = new CrawlConfig();
 			// 抓取深度
-			// config.setMaxDepthOfCrawling(1);
-			// 登陆
+//			 config.setMaxDepthOfCrawling(0);
+			// 汽車之家登陆
 			List<AuthInfo> infos = new ArrayList<AuthInfo>();
 			AuthInfo info = new BasicAuthInfo("holiday519", "history422", "http://account.autohome.com.cn/");
 			infos.add(info);

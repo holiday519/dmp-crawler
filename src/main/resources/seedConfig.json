@@ -1,11 +1,14 @@
 {
 	autocode.Crawler4Autohome : [
-		"http://club.autohome.com.cn/"
+		"http://www.autohome.com.cn/beijing/"
 	],		
 	autocode.Crawler4AutohomeUser : [
 		"http://club.autohome.com.cn/"	
 	],
 	test.Crawler4AutohomeBBS : [
 		"http://club.autohome.com.cn/"	
+	],
+	bitauto.Crawler4Bitauto : [
+		"http://beijing.huimaiche.com/"	
 	]
 }
