@@ -101,8 +101,8 @@ public class Crawler4Autohome extends WebCrawler {
 
 	private static final String regex4Car="^http://www.autohome.com.cn/[1-9a-zA-Z]*/$|" 
 			+ "^http://www.autohome.com.cn/car/.*|"
-			+ "^http://car.autohome.com.cn/price/.*?html$|"
-			+ "^http://car.autohome.com.cn/config/.*?html$|"
+			+ "^http://car.autohome.com.cn/price/.*html|"
+			+ "^http://car.autohome.com.cn/config/.*html$|"
 			+ "^http://www.autohome.com.cn/spec/[\\d]*/.*|"
 			+ "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|"
 			+ "^http://www.autohome.com.cn/.*?/sale.html.*";
@@ -179,12 +179,12 @@ public class Crawler4Autohome extends WebCrawler {
 						if(details.get(0).select("a").size()>1 &&StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(.*?)分").length()>0){
 							source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(.*?)分"));
 						}
-						String ownerOil ="";
+						String oil_wear ="";
 						if(details.get(1).select("a").size()>0){
-							ownerOil = details.get(1).select("a").get(0).text();
+							oil_wear = details.get(1).select("a").get(0).text();
 						}
 						String size = details.get(2).ownText();
-						String commonOil = details.get(3).ownText();
+						String com_wear = details.get(3).ownText();
 						String struct = details.get(4).ownText();
 						String pqa = details.get(5).ownText();
 						String engine = details.get(6).ownText();
@@ -198,9 +198,9 @@ public class Crawler4Autohome extends WebCrawler {
 						datas.put("auto_name", Bytes.toBytes(brandName+"#"+styleName));
 						datas.put("manu_price", Bytes.toBytes(price));
 						datas.put("source", Bytes.toBytes(source));
-						datas.put("owner_oil", Bytes.toBytes(ownerOil));
+						datas.put("oil_wear", Bytes.toBytes(oil_wear)); //车主油耗
 						datas.put("size", Bytes.toBytes(size));
-						datas.put("common_oil", Bytes.toBytes(commonOil));
+						datas.put("com_wear", Bytes.toBytes(com_wear));
 						datas.put("struct", Bytes.toBytes(struct));
 						datas.put("pqa", Bytes.toBytes(pqa));
 						datas.put("engine", Bytes.toBytes(engine));
