@@ -34,6 +34,7 @@ public class CjhCookieTool {
 		con.userAgent(USERAGENT);
 		con.method(Method.POST);
 		con.timeout(2000);
+		
 		try {
 			Map<String, String> cookies = con.data(datas).execute().cookies();
 			if(!new File("fcookie").exists()){
@@ -64,6 +65,7 @@ public class CjhCookieTool {
 	
 	public static void updateAllCookies(){
 		updateCookies("autohome", str2Map("name=qczjcjh123&pwd=49787efcc090d54c64e7c143f2c0318d"), "http://account.autohome.com.cn/Login/ValidIndex");
+		updateCookies("bitauto", str2Map("txt_LoginName=18611434755&txt_Password=yccjh12345"), "http://i.yiche.com/ajax/Authenservice/login.ashx");
 	}
 	
 }

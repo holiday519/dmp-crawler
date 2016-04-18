@@ -8,7 +8,8 @@
 	test.Crawler4AutohomeBBS : [
 		"http://club.autohome.com.cn/"	
 	],
-	bitauto.Crawler4Bitauto : [
-		"http://car.bitauto.com/"
+	autocode.Crawler4Bitauto : [
+		"http://beijing.bitauto.com/",
+		"http://baa.bitauto.com/"
 	]
 }

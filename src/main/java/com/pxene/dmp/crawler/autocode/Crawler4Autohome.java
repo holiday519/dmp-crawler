@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,10 +32,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import com.pxene.dmp.autocode.vo.BBS;
 import com.pxene.dmp.autocode.vo.BuyCarEvent;
+import com.pxene.dmp.common.CjhCookieTool;
 import com.pxene.dmp.common.CookieTools;
 import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.common.TimeConstant;
+import com.pxene.dmp.common.UATool;
+import com.pxene.dmp.constant.IPList;
 import com.pxene.dmp.crawler.test.Crawler4AutohomeUser;
 import com.pxene.dmp.main.CrawlerManager;
 
@@ -91,39 +95,34 @@ public class Crawler4Autohome extends WebCrawler {
 	/**
 	 * 读取配置文件中的省份，城市信息
 	 */
-	private static JsonObject areaJson = gson.fromJson(
-			new JsonReader(new InputStreamReader(Crawler4AutohomeUser.class.getResourceAsStream("/area.json"))),
-			JsonObject.class);
+	private static JsonObject areaJson = gson.fromJson(new JsonReader(new InputStreamReader(Crawler4AutohomeUser.class.getResourceAsStream("/area.json"))), JsonObject.class);
 	private static JsonArray cityList = areaJson.get("cityList").getAsJsonArray();
 
-	private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" + "|png|tiff?|mid|mp2|mp3|mp4"
-			+ "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
+	private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" + "|png|tiff?|mid|mp2|mp3|mp4" + "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 
-	private static final String regex4Car="^http://www.autohome.com.cn/[1-9a-zA-Z]*/$|" 
-			+ "^http://www.autohome.com.cn/car/.*|"
-			+ "^http://car.autohome.com.cn/price/.*html|"
-			+ "^http://car.autohome.com.cn/config/.*html$|"
-			+ "^http://www.autohome.com.cn/spec/[\\d]*/.*|"
-			+ "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|"
-			+ "^http://www.autohome.com.cn/.*?/sale.html.*";
-	
+	private static final String regex4Car = "^http://www.autohome.com.cn/[1-9a-zA-Z]*/$|" + "^http://www.autohome.com.cn/car/.*|" + "^http://car.autohome.com.cn/price/.*html|" + "^http://car.autohome.com.cn/config/.*html$|" + "^http://www.autohome.com.cn/spec/[\\d]*/.*|" + "^http://www.autohome.com.cn/grade/carhtml/[A-Z].html$|" + "^http://www.autohome.com.cn/.*?/sale.html.*";
+
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
 		String href = url.getURL().toLowerCase();
 		boolean isCar = href.matches(regex4Car);
-//		boolean isUser = href.matches(REGEX4AUTO_USER_CARLIST) || href.matches(REGEX4AUTO_USER_NEXTPAGE)
-//				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER);
-//		boolean isBBS = href.matches(REGEX4AUTO_USER) || href.matches(REGEX4AUTO_USER_CARLIST)
-//				|| href.matches(REGEX4AUTO_USER_BBS) || href.matches(REGEX4AUTO_USER_NEXTPAGE);
-		return isCar ;
+		// boolean isUser = href.matches(REGEX4AUTO_USER_CARLIST) ||
+		// href.matches(REGEX4AUTO_USER_NEXTPAGE)
+		// || href.matches(REGEX4AUTO_USER_BBS) ||
+		// href.matches(REGEX4AUTO_USER);
+		// boolean isBBS = href.matches(REGEX4AUTO_USER) ||
+		// href.matches(REGEX4AUTO_USER_CARLIST)
+		// || href.matches(REGEX4AUTO_USER_BBS) ||
+		// href.matches(REGEX4AUTO_USER_NEXTPAGE);
+		return isCar;
 	}
 
 	@Override
 	public void visit(Page page) {
-		String url=page.getWebURL().getURL();
+		String url = page.getWebURL().getURL();
 		visitSpecPage(url);
-//		visitBBSPage(page);
-//		visitUserPage(page);
+		// visitBBSPage(page);
+		// visitUserPage(page);
 	}
 
 	/**
@@ -132,90 +131,81 @@ public class Crawler4Autohome extends WebCrawler {
 	 * @param page
 	 */
 	private void visitSpecPage(String url) {
-		//汽车参数页中js串中所有的specid提取出来，拼成url重新抓取具体页
-				if(url.matches("^http://car.autohome.com.cn/config/.*html$")){
-					try {
-						Document doc = Jsoup.connect(url).get();
-						Elements script = doc.select("script");
-						Set<String> specId = StringUtils.fullRegexpExtract(script.toString(), "(?<=specid\":)([^,]*)(?=,)");
-						for (String id : specId) {
-							String specUrl="http://www.autohome.com.cn/spec/**/".replace("**", id);
-							System.out.println("********************"+specUrl);
-							visitSpecPage(specUrl);
-						}
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				//http://www.autohome.com.cn/car/页异步请求的url
-				if(url.matches("^http://www.autohome.com.cn/car/$")){
-					String base="http://www.autohome.com.cn/grade/carhtml/[].html";
-					for(int i=0;i<26;i++){
-						String carPageUrl=base.replace("[]", (char)('A'+i)+"");
-						CrawlerManager.controller.addSeed(carPageUrl);
-					}
-				}
-				
-				if (url.matches(STYLE_REGEX)) {
-					logger.info("****"+url); //日志打印
-					String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
-					try {
-				        
-						Document doc = Jsoup.connect(url).timeout(5000).userAgent(USERAGENT).get();
-						String autoId="";
-						if(doc.select(".subnav-title-return a").size()>0){
-							autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/(.*?)/\\?pvareaid=");
-						}
-						String styleName = doc.select(".subnav-title-name a h1").get(0).text();
-						
-						float price =0;
-						if(doc.select(".cardetail-infor-price ul li").size()>2 &&StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(.*?)万元").length()>0){
-							price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：(.*?)万元"));
-						}
-						Elements details = doc.select(".cardetail-infor-car ul li");
-						
-						float source=0;
-						if(details.get(0).select("a").size()>1 &&StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(.*?)分").length()>0){
-							source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "(.*?)分"));
-						}
-						String oil_wear ="";
-						if(details.get(1).select("a").size()>0){
-							oil_wear = details.get(1).select("a").get(0).text();
-						}
-						String size = details.get(2).ownText();
-						String com_wear = details.get(3).ownText();
-						String struct = details.get(4).ownText();
-						String pqa = details.get(5).ownText();
-						String engine = details.get(6).ownText();
-						String gearbox = details.get(7).ownText();
-						
-						//提取返回的url
-						String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
-						String brandName = Jsoup.connect(returna).userAgent(USERAGENT).timeout(5000).get().select("div.subnav-title-name a").first().text();
-						
-						Map<String, byte[]> datas = new HashMap<String, byte[]>();
-						datas.put("auto_name", Bytes.toBytes(brandName+"#"+styleName));
-						datas.put("manu_price", Bytes.toBytes(price));
-						datas.put("source", Bytes.toBytes(source));
-						datas.put("oil_wear", Bytes.toBytes(oil_wear)); //车主油耗
-						datas.put("size", Bytes.toBytes(size));
-						datas.put("com_wear", Bytes.toBytes(com_wear));
-						datas.put("struct", Bytes.toBytes(struct));
-						datas.put("pqa", Bytes.toBytes(pqa));
-						datas.put("engine", Bytes.toBytes(engine));
-						datas.put("gearbox", Bytes.toBytes(gearbox));
-						
-						HTableInterface table = HBaseTools.openTable(TABLE_NAME);
-						if (table != null) {
-							String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
-							HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
-							HBaseTools.closeTable(table);
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+		// 汽车参数页中js串中所有的specid提取出来，拼成url重新抓取具体页
+		if (url.matches("^http://car.autohome.com.cn/config/.*html$")) {
+			Document doc = getDoc(url);
+			Elements script = doc.select("script");
+			Set<String> specId = StringUtils.fullRegexpExtract(script.toString(), "(?<=specid\":)([^,]*)(?=,)");
+			for (String id : specId) {
+				String specUrl = "http://www.autohome.com.cn/spec/**/".replace("**", id);
+				System.out.println("********************" + specUrl);
+				visitSpecPage(specUrl);
+			}
+		}
+		// http://www.autohome.com.cn/car/页异步请求的url
+		if (url.matches("^http://www.autohome.com.cn/car/$")) {
+			String base = "http://www.autohome.com.cn/grade/carhtml/[].html";
+			for (int i = 0; i < 26; i++) {
+				String carPageUrl = base.replace("[]", (char) ('A' + i) + "");
+				CrawlerManager.controller.addSeed(carPageUrl);
+			}
+		}
+
+		if (url.matches(STYLE_REGEX)) {
+			logger.info("****" + url); // 日志打印
+			String styleId = StringUtils.regexpExtract(url, "spec/([\\d]*)/");
+
+			Document doc = getDoc(url);
+			String autoId = "";
+			if (doc.select(".subnav-title-return a").size() > 0) {
+				autoId = StringUtils.regexpExtract(doc.select(".subnav-title-return a").get(0).attr("href"), "/(.*?)/\\?pvareaid=");
+			}
+			String styleName = doc.select(".subnav-title-name a h1").get(0).text();
+
+			float price = 0;
+			if (doc.select(".cardetail-infor-price ul li").size() > 2 && StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：([\\d]*|[\\d]*\\.[\\d]*)万元").length() > 0) {
+				price = Float.parseFloat(StringUtils.regexpExtract(doc.select(".cardetail-infor-price ul li").get(2).text(), "厂商指导价：([\\d]*|[\\d]*\\.[\\d]*)万元"));
+			}
+			Elements details = doc.select(".cardetail-infor-car ul li");
+
+			float source = 0;
+			if (details.get(0).select("a").size() > 1 && StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "([\\d]*|[\\d]*\\.[\\d]*)分").length() > 0) {
+				source = Float.parseFloat(StringUtils.regexpExtract(details.get(0).select("a").get(1).text(), "([\\d]*|[\\d]*\\.[\\d]*)分"));
+			}
+			String oil_wear = "";
+			if (details.get(1).select("a").size() > 0) {
+				oil_wear = details.get(1).select("a").get(0).text();
+			}
+			String size = details.get(2).ownText();
+			String com_wear = details.get(3).ownText();
+			String struct = details.get(4).ownText();
+			String pqa = details.get(5).ownText();
+			String engine = details.get(6).ownText();
+			String gearbox = details.get(7).ownText();
+
+			// 提取返回的url
+			String returna = doc.select("div.subnav-title-return a").first().absUrl("href");
+			String brandName =getDoc(returna).select("div.subnav-title-name a").first().text();
+
+			Map<String, byte[]> datas = new HashMap<String, byte[]>();
+			datas.put("auto_name", Bytes.toBytes(brandName + "#" + styleName));
+			datas.put("manu_price", Bytes.toBytes(price));
+			datas.put("source", Bytes.toBytes(source));
+			datas.put("oil_wear", Bytes.toBytes(oil_wear)); // 车主油耗
+			datas.put("size", Bytes.toBytes(size));
+			datas.put("com_wear", Bytes.toBytes(com_wear));
+			datas.put("struct", Bytes.toBytes(struct));
+			datas.put("pqa", Bytes.toBytes(pqa));
+			datas.put("engine", Bytes.toBytes(engine));
+			datas.put("gearbox", Bytes.toBytes(gearbox));
+
+			HTableInterface table = HBaseTools.openTable(TABLE_NAME);
+			if (table != null) {
+				String rowKey = ROWKEY_PREFIX + autoId + "_" + styleId;
+				HBaseTools.putColumnDatas(table, rowKey, FAMILY_NAME, datas);
+				HBaseTools.closeTable(table);
+			}
+		}
 	}
 
 	/**
@@ -273,8 +263,7 @@ public class Crawler4Autohome extends WebCrawler {
 				/**
 				 * 抓取用户的生日
 				 */
-				Document birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).timeout(5000).cookies(cookies)
-						.get();
+				Document birthDoc = Jsoup.connect(url + "/info").userAgent(USER_AGENT).timeout(5000).cookies(cookies).get();
 				Element divuserinfo = birthDoc.getElementById("divuserinfo");
 				if (divuserinfo == null) {
 					// 说明登陆失败,更新cookie
@@ -336,8 +325,7 @@ public class Crawler4Autohome extends WebCrawler {
 				Elements carItemLists = event.select("ul[class=price-item-info fn-clear]>li");
 				// 抓取车型ID
 				String carStyleIdTemp = carItemLists.get(0).select("a").attr("href");
-				String carStyleID = carStyleIdTemp.substring(carStyleIdTemp.indexOf("-") + 1,
-						carStyleIdTemp.indexOf("#"));
+				String carStyleID = carStyleIdTemp.substring(carStyleIdTemp.indexOf("-") + 1, carStyleIdTemp.indexOf("#"));
 				buyCarEvent.setCar(carStyleID);
 
 				// 抓取购车价格
@@ -347,15 +335,13 @@ public class Crawler4Autohome extends WebCrawler {
 				// 抓取购车时间
 				String buyCarTime = carItemLists.select("li[class=grid-2-1]").select("div[class=txcon]").text();
 				try {
-					buyCarTime = TimeConstant.ENGLISH_FORM4_ZHIDAOS
-							.format(TimeConstant.CHINESE_FORM4_ZHIDAO.parse(buyCarTime));
+					buyCarTime = TimeConstant.ENGLISH_FORM4_ZHIDAOS.format(TimeConstant.CHINESE_FORM4_ZHIDAO.parse(buyCarTime));
 					buyCarEvent.setTime(buyCarTime);
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
 				// 抓取购车地点
-				String buyCarAddrId = carItemLists.select("li[class=grid-2-2]").select("div[class=txcon addr]")
-						.attr("cid");
+				String buyCarAddrId = carItemLists.select("li[class=grid-2-2]").select("div[class=txcon addr]").attr("cid");
 				for (JsonElement jsonElement : cityList) {
 					if (jsonElement.getAsJsonObject().get("Id").getAsString().equals(buyCarAddrId)) {
 						String buyCarAddr = jsonElement.getAsJsonObject().get("Name").getAsString();
@@ -374,8 +360,7 @@ public class Crawler4Autohome extends WebCrawler {
 					BuyCarEvent buyCarEvent = new BuyCarEvent();
 					// 汽车id
 					String carStyleIDTemp = event.select("li[class=info-left]").select("a[href*=spec]").attr("href");
-					String carStyleID = carStyleIDTemp.substring(carStyleIDTemp.indexOf("spec") + 5,
-							carStyleIDTemp.indexOf("view") - 1);
+					String carStyleID = carStyleIDTemp.substring(carStyleIDTemp.indexOf("spec") + 5, carStyleIDTemp.indexOf("view") - 1);
 					buyCarEvent.setCar(carStyleID);
 
 					// 价格
@@ -433,8 +418,7 @@ public class Crawler4Autohome extends WebCrawler {
 					String focusCarsTemp = car.select("script").html();
 					if (focusCarsTemp.contains("already")) {
 						// 说明是关注的车型
-						String focusCarsId = focusCarsTemp.substring(focusCarsTemp.indexOf("_") + 1,
-								focusCarsTemp.lastIndexOf(")") - 1);
+						String focusCarsId = focusCarsTemp.substring(focusCarsTemp.indexOf("_") + 1, focusCarsTemp.lastIndexOf(")") - 1);
 						userFocusCarsId.append(focusCarsId + ",");
 					}
 					/**
@@ -508,10 +492,8 @@ public class Crawler4Autohome extends WebCrawler {
 						bbsInfo.append(SPLIT + "" + fromBBS);
 						// 点击数,回复数
 						// 返回一个json串
-						Document replyDoc = Jsoup.connect("http://i.service.autohome.com.cn/clubapp/rv?ids="
-								+ bbsid.substring(bbsid.lastIndexOf("-") + 1)).get();
-						BBS replys_views = gson.fromJson(replyDoc.text().substring(1, replyDoc.text().length() - 1),
-								BBS.class);
+						Document replyDoc = Jsoup.connect("http://i.service.autohome.com.cn/clubapp/rv?ids=" + bbsid.substring(bbsid.lastIndexOf("-") + 1)).get();
+						BBS replys_views = gson.fromJson(replyDoc.text().substring(1, replyDoc.text().length() - 1), BBS.class);
 						bbsInfo.append(SPLIT + "" + replys_views.getReplys() + SPLIT + "" + replys_views.getViews());
 						// 发表时间
 						String time = bbs.select("td[class=txtCen]").get(1).text();
@@ -544,6 +526,33 @@ public class Crawler4Autohome extends WebCrawler {
 				}
 			}
 		}
+	}
+
+	// 确保document一定获取成功
+	private Document getDoc(String url) {
+		Document doc = null;
+		int i = 0;
+		while (true) {
+			try {
+				doc = Jsoup.connect(url).cookies(CjhCookieTool.getCookie("autohome")).userAgent(UATool.getUA()).get();
+				break;
+			} catch (IOException e) {
+				logger.info("抓取失败。。。重来。。。");
+				List<String> iplist = IPList.elements();
+				String ipstr = iplist.get(new Random().nextInt(iplist.size()));
+				System.getProperties().setProperty("proxySet", "true");
+				System.getProperties().setProperty("http.proxyHost", ipstr.split(":")[0]);
+				System.getProperties().setProperty("http.proxyPort", ipstr.split(":")[1]);
+				i++;
+			}
+
+			// 防止过多次的死循环
+			if (i >= 20) {
+				break;
+			}
+
+		}
+		return doc;
 	}
 
 }
