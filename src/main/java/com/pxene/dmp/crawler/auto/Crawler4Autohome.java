@@ -27,7 +27,7 @@ import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4Autohome extends BaseCrawler {
 
-	private Log logger = LogFactory.getLog(Crawler4Autohome.class);
+	private Log log = LogFactory.getLog(Crawler4Autohome.class);
 	// hbase参数
 	private static final String TABLE_NAME = "t_auto_autocode";
 
