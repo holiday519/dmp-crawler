@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -21,6 +22,7 @@ import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.crawler.BaseCrawler;
 
 import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4Autohome extends BaseCrawler {
@@ -33,10 +35,6 @@ public class Crawler4Autohome extends BaseCrawler {
 
 	private static final String ROWKEY_PREFIX = "00030005_";
 
-	// 配置文件路径
-	private static final String CONFIG_PATH = "auto/Crawler4Autohome.json";
-	private static final String COOKIE_PATH = "auto/Crawler4Autohome.cookies";
-	
 	// 正则
 	private final static String FILTER_REGEX = ".*(\\.(css|js|bmp|gif|jpe?g"
 			+ "|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf|rm|smil|wmv|swf|wma|zip|rar|gz))$";
@@ -83,13 +81,13 @@ public class Crawler4Autohome extends BaseCrawler {
 
 	@Override
 	public void visit(Page page) {
-		String url = page.getWebURL().getURL();
-		getAutoCode(url);
+		getAutoCode(page);
+		getUserInfo(page);
 	}
 
-	private void getAutoCode(String url) {
-		if (url.matches(AUTO_CODE_REGEXS.STYLE_LIST)) {
-			Document doc = getDocument(url, CONFIG_PATH, COOKIE_PATH);
+	private void getAutoCode(Page page) {
+		if (page.getWebURL().getURL().matches(AUTO_CODE_REGEXS.STYLE_LIST)) {
+			Document doc = Jsoup.parse(((HtmlParseData) page.getParseData()).getHtml());
 			if (doc == null) {
 				return;
 			}
@@ -115,6 +113,7 @@ public class Crawler4Autohome extends BaseCrawler {
 								for (JsonElement val : paramVals) {
 									String styleId = val.getAsJsonObject().get("specid").getAsString();
 									String style = val.getAsJsonObject().get("value").getAsString();
+									System.out.println(styleId + ":" + style);
 									insertData(rowDatas, ROWKEY_PREFIX + autoId + "_" + styleId, FAMILY_NAME, "style", Bytes.toBytes(style));
 								}
 								break;
@@ -214,7 +213,7 @@ public class Crawler4Autohome extends BaseCrawler {
 		}
 	}
 	
-	private void getUserInfo(String url) {
+	private void getUserInfo(Page page) {
 		
 	}
 	

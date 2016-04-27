@@ -33,7 +33,6 @@ public class CrawlerManager {
 		String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
 		// 命令行配置
 		Options options = new Options();
-		options.addOption("updateCookie", true, "input class name of crawler");
 		options.addOption("crawlPages", true, "input class name of crawler");
 		CommandLineParser parser = new BasicParser();
 		CommandLine line = parser.parse(options, args);
@@ -43,6 +42,7 @@ public class CrawlerManager {
 			CrawlConfig config = new CrawlConfig();
 			// 读取配置文件
 			String confPath = "/" + (packageName + "." + className).replace(".", "/") + ".json";
+			System.out.println(confPath);
 			CrawlerConfig conf = CrawlerConfig.load(confPath);
 			Login loginConf = conf.getLoginConf();
 			if (loginConf.isEnable()) {
@@ -80,8 +80,6 @@ public class CrawlerManager {
 							packageName + "." + className).newInstance();
 				}
 			}, numberOfCrawlers);
-		} else if (line.hasOption("updateCookies")) {
-			
 		} else {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("options", options);
