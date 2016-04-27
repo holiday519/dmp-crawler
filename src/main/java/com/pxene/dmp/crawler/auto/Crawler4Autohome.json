@@ -1,0 +1,16 @@
+{
+	seeds : [
+		"http://www.autohome.com.cn/grade/carhtml/A.html"
+	],
+	loginConf : {
+		enable : true,
+		url : "http://account.autohome.com.cn/",
+		username : "qczjcjh123",
+		password : "cjh4321"
+	},
+	proxyConf : {
+		enable : true,
+		ips : [],
+		userAgents : []
+	}
+}
