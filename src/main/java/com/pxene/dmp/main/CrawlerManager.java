@@ -28,7 +28,7 @@ public class CrawlerManager {
 		// 基本配置
 		final String packageName = "com.pxene.dmp.crawler";
 		String crawlStorageFolder = "temp";
-		int numberOfCrawlers = 10;
+		int numberOfCrawlers = 40;
 		// 默认的ua
 		String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
 		// 命令行配置
@@ -42,7 +42,6 @@ public class CrawlerManager {
 			CrawlConfig config = new CrawlConfig();
 			// 读取配置文件
 			String confPath = "/" + (packageName + "." + className).replace(".", "/") + ".json";
-			System.out.println(confPath);
 			CrawlerConfig conf = CrawlerConfig.load(confPath);
 			Login loginConf = conf.getLoginConf();
 			if (loginConf.isEnable()) {

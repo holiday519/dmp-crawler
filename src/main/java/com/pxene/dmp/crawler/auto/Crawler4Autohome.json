@@ -2,7 +2,7 @@
 	seeds : [
 		"http://www.autohome.com.cn/grade/carhtml/[A-Z].html",
 		"http://club.autohome.com.cn/",
-		"http://zhidao.autohome.com.cn/list/s1-[1-70527].html"
+		"http://zhidao.autohome.com.cn/list/s1-[1-74309].html"
 	],
 	loginConf : {
 		enable : true,

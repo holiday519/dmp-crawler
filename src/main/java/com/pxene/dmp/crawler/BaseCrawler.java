@@ -3,9 +3,18 @@ package com.pxene.dmp.crawler;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.pxene.dmp.common.CrawlerConfig;
+import com.pxene.dmp.common.CrawlerConfig.Proxy;
+
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 
 public class BaseCrawler extends WebCrawler {
+	
+	protected Proxy proxyConf;
+	
+	protected BaseCrawler(String confPath) {
+		proxyConf = CrawlerConfig.load(confPath).getProxyConf();
+	}
 
 	protected Map<String, Map<String, Map<String, byte[]>>> insertData(
 			Map<String, Map<String, Map<String, byte[]>>> rowDatas,
