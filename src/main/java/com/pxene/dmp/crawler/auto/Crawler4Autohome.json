@@ -1,8 +1,9 @@
 {
 	seeds : [
-		"http://www.autohome.com.cn/grade/carhtml/[A-Z].html",
+		"http://car.autohome.com.cn/zhaoche/pinpai/",
 		"http://club.autohome.com.cn/",
-		"http://zhidao.autohome.com.cn/list/s1-[1-74309].html"
+		"http://zhidao.autohome.com.cn/list/s1-[1-74309].html",
+		"http://dealer.autohome.com.cn/beijing/"
 	],
 	loginConf : {
 		enable : true,

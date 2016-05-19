@@ -11,6 +11,7 @@ import org.apache.commons.cli.Options;
 
 import com.pxene.dmp.common.CrawlerConfig;
 import com.pxene.dmp.common.CrawlerConfig.Login;
+import com.pxene.dmp.common.SeedParser;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
@@ -38,6 +39,7 @@ public class CrawlerManager {
 		CommandLine line = parser.parse(options, args);
 
 		if (line.hasOption("crawlPages")) {
+			// className:auto.Crawler4Autohome
 			final String className = line.getOptionValue("crawlPages");
 			CrawlConfig config = new CrawlConfig();
 			// 读取配置文件
@@ -52,8 +54,12 @@ public class CrawlerManager {
 				config.setAuthInfos(infos);
 			}
 			config.setUserAgentString(userAgent);
+			
 			// 抓取深度
-			// config.setMaxDepthOfCrawling(1);
+			config.setMaxDepthOfCrawling(5);
+			// 最大网页数
+			config.setMaxPagesToFetch(10000);
+			
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setSocketTimeout(5000);
 			config.setConnectionTimeout(5000);
@@ -69,7 +75,9 @@ public class CrawlerManager {
 					robotstxtServer);
 			// 加载种子
 			for (String seed : conf.getSeeds()) {
-				controller.addSeed(seed);
+				for (String s : SeedParser.parse(seed)) {
+					controller.addSeed(s);
+				}
 			}
 
 			controller.start(new WebCrawlerFactory<WebCrawler>() {
