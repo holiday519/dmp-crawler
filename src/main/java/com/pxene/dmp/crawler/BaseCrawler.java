@@ -1,19 +1,27 @@
 package com.pxene.dmp.crawler;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import com.pxene.dmp.common.CrawlerConfig;
-import com.pxene.dmp.common.CrawlerConfig.Proxy;
+import com.pxene.dmp.common.CrawlerConfig.LoginConf;
+import com.pxene.dmp.common.CrawlerConfig.ProxyConf;
 
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 
 public class BaseCrawler extends WebCrawler {
 	
-	protected Proxy proxyConf;
+	protected LoginConf loginConf;
+	protected ProxyConf proxyConf;
 	
 	protected BaseCrawler(String confPath) {
-		proxyConf = CrawlerConfig.load(confPath).getProxyConf();
+		CrawlerConfig conf = CrawlerConfig.load(confPath);
+		loginConf = conf.getLoginConf();
+		proxyConf = conf.getProxyConf();
 	}
 
 	protected Map<String, Map<String, Map<String, byte[]>>> insertData(
@@ -45,4 +53,29 @@ public class BaseCrawler extends WebCrawler {
 		return columnDatas;
 	}
 	
+	protected Document parseHtml(String html) {
+		return Jsoup.parse(html);
+	}
+	
+	protected Document connectUrl(String url) {
+		Document doc = null;
+		try {
+			doc = Jsoup.connect(url).timeout(20000).get();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return doc;
+	}
+	
+	protected Document connectUrl(String url, Map<String, String> cookie) {
+		Document doc = null;
+		try {
+			doc = Jsoup.connect(url).cookies(cookie).timeout(20000).get();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return doc;
+	}
 }

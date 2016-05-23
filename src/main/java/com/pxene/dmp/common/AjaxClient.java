@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -45,6 +46,7 @@ public class AjaxClient {
 		String url = (builder.url == null) ? "" : builder.url;
 		Map<String, String> headers = (builder.headers == null) ? new HashMap<String, String>() : builder.headers;
 		request = new HttpGet(url);
+		request.setConfig(RequestConfig.custom().setSocketTimeout(20000).setConnectTimeout(20000).build());
 		for (Map.Entry<String, String> entry : headers.entrySet()) {
 			request.setHeader(entry.getKey(), entry.getValue());
 		}
@@ -60,8 +62,16 @@ public class AjaxClient {
 		return getResult(resp);
 	}
 	
+	public void close() {
+		try {
+			client.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private JsonObject getResult(HttpResponse resp) {
-		byte[] cache = new byte[512];
+		byte[] cache = new byte[8192];
 		try {
 			InputStream input = resp.getEntity().getContent();
 			input.read(cache);

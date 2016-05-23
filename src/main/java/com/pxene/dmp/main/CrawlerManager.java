@@ -10,7 +10,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 import com.pxene.dmp.common.CrawlerConfig;
-import com.pxene.dmp.common.CrawlerConfig.Login;
+import com.pxene.dmp.common.CrawlerConfig.LoginConf;
 import com.pxene.dmp.common.SeedParser;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
@@ -45,7 +45,7 @@ public class CrawlerManager {
 			// 读取配置文件
 			String confPath = "/" + (packageName + "." + className).replace(".", "/") + ".json";
 			CrawlerConfig conf = CrawlerConfig.load(confPath);
-			Login loginConf = conf.getLoginConf();
+			LoginConf loginConf = conf.getLoginConf();
 			if (loginConf.isEnable()) {
 				List<AuthInfo> infos = new ArrayList<AuthInfo>();
 				AuthInfo info = new BasicAuthInfo(loginConf.getUsername(), loginConf.getPassword(),
@@ -56,13 +56,13 @@ public class CrawlerManager {
 			config.setUserAgentString(userAgent);
 			
 			// 抓取深度
-			config.setMaxDepthOfCrawling(5);
+//			config.setMaxDepthOfCrawling(5);
 			// 最大网页数
-			config.setMaxPagesToFetch(10000);
+//			config.setMaxPagesToFetch(10000);
 			
 			config.setCrawlStorageFolder(crawlStorageFolder);
-			config.setSocketTimeout(5000);
-			config.setConnectionTimeout(5000);
+			config.setSocketTimeout(20000);
+			config.setConnectionTimeout(20000);
 
 			PageFetcher pageFetcher = new PageFetcher(config);
 			RobotstxtConfig robotstxtConfig = new RobotstxtConfig();

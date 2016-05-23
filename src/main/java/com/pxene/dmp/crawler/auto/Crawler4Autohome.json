@@ -9,7 +9,12 @@
 		enable : true,
 		url : "http://account.autohome.com.cn/",
 		username : "qczjcjh123",
-		password : "cjh4321"
+		password : "cjh4321",
+		cookie : {
+			url : "http://account.autohome.com.cn/Login/ValidIndex",
+			usekey : "name",
+			pwdkey : "pwd"
+		}
 	},
 	proxyConf : {
 		enable : true,
