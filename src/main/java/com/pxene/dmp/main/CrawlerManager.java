@@ -8,6 +8,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import com.pxene.dmp.common.CrawlerConfig;
 import com.pxene.dmp.common.CrawlerConfig.LoginConf;
@@ -19,6 +20,7 @@ import edu.uci.ics.crawler4j.crawler.CrawlController.WebCrawlerFactory;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.crawler.authentication.AuthInfo;
 import edu.uci.ics.crawler4j.crawler.authentication.BasicAuthInfo;
+import edu.uci.ics.crawler4j.crawler.authentication.FormAuthInfo;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
@@ -29,7 +31,7 @@ public class CrawlerManager {
 		// 基本配置
 		final String packageName = "com.pxene.dmp.crawler";
 		String crawlStorageFolder = "temp";
-		int numberOfCrawlers = 40;
+		int numberOfCrawlers = 50;
 		// 默认的ua
 		String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
 		// 命令行配置
@@ -48,8 +50,11 @@ public class CrawlerManager {
 			LoginConf loginConf = conf.getLoginConf();
 			if (loginConf.isEnable()) {
 				List<AuthInfo> infos = new ArrayList<AuthInfo>();
-				AuthInfo info = new BasicAuthInfo(loginConf.getUsername(), loginConf.getPassword(),
-						loginConf.getUrl());
+//				AuthInfo info = new BasicAuthInfo(loginConf.getUsername(), loginConf.getPassword(),
+//						loginConf.getUrl());
+				AuthInfo info = new FormAuthInfo(loginConf.getUsername(), 
+						loginConf.getPassword(), loginConf.getUrl(), loginConf.getUsrkey(), 
+						loginConf.getPwdkey());
 				infos.add(info);
 				config.setAuthInfos(infos);
 			}
@@ -91,6 +96,5 @@ public class CrawlerManager {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("options", options);
 		}
-		
 	}
 }

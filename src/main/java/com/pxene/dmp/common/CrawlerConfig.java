@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 
@@ -70,9 +72,10 @@ public class CrawlerConfig {
 	public class LoginConf {
 		private boolean enable;
 		private String url;
+		private String usrkey;
 		private String username;
+		private String pwdkey;
 		private String password;
-		private Cookie cookie;
 		public boolean isEnable() {
 			return enable;
 		}
@@ -85,46 +88,29 @@ public class CrawlerConfig {
 		public void setUrl(String url) {
 			this.url = url;
 		}
+		public String getUsrkey() {
+			return usrkey;
+		}
+		public void setUsrkey(String usrkey) {
+			this.usrkey = usrkey;
+		}
 		public String getUsername() {
 			return username;
 		}
 		public void setUsername(String username) {
 			this.username = username;
 		}
+		public String getPwdkey() {
+			return pwdkey;
+		}
+		public void setPwdkey(String pwdkey) {
+			this.pwdkey = pwdkey;
+		}
 		public String getPassword() {
-			return password;
+			return DigestUtils.md5Hex(password);
 		}
 		public void setPassword(String password) {
 			this.password = password;
-		}
-		public Cookie getCookie() {
-			return cookie;
-		}
-		public void setCookie(Cookie cookie) {
-			this.cookie = cookie;
-		}
-		public class Cookie {
-			private String url;
-			private String usekey;
-			private String pwdkey;
-			public String getUrl() {
-				return url;
-			}
-			public void setUrl(String url) {
-				this.url = url;
-			}
-			public String getUsekey() {
-				return usekey;
-			}
-			public void setUsekey(String usekey) {
-				this.usekey = usekey;
-			}
-			public String getPwdkey() {
-				return pwdkey;
-			}
-			public void setPwdkey(String pwdkey) {
-				this.pwdkey = pwdkey;
-			}
 		}
 	}
 

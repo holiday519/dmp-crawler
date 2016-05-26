@@ -1,15 +1,16 @@
 package com.pxene.dmp.common;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -71,13 +72,14 @@ public class AjaxClient {
 	}
 	
 	private JsonObject getResult(HttpResponse resp) {
-		byte[] cache = new byte[8192];
+		HttpEntity entity = resp.getEntity();
+		String json = "";
 		try {
-			InputStream input = resp.getEntity().getContent();
-			input.read(cache);
-		} catch (Exception e) {
-			e.printStackTrace();
+			json = EntityUtils.toString(entity, "GBK");
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			return new JsonObject();
 		}
-		return GSON.fromJson(new String(cache, 0, cache.length).trim(), JsonObject.class);
+		return GSON.fromJson(json, JsonObject.class);
 	}
 }
