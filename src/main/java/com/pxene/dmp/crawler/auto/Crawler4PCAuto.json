@@ -1,0 +1,17 @@
+{
+    "seeds": [
+        "http://price.pcauto.com.cn/cars/",
+        "http://bbs.pcauto.com.cn/"
+    ],
+    "loginConf": {
+        "enable": true,
+        "url": "http://my.pcauto.com.cn/login.jsp",
+        "username": "18910057215",
+        "password": "123!@#qwe"
+    },
+    "proxyConf": {
+        "enable": true,
+        "ips": [],
+        "userAgents": []
+    }
+}

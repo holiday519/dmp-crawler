@@ -24,4 +24,11 @@ public class StringUtils {
 		return str.replaceAll("[\\pP\\pZ\\pS]", "");
 	}
 	
+	public static String removeLineBreak(String str) {
+        if (str == null) {
+            return "";
+        }
+        return str.replaceAll("[\\n\\r]", "");
+    }
+	
 }

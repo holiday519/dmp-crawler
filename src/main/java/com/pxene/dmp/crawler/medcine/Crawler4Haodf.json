@@ -1,0 +1,16 @@
+{
+    "seeds": [
+        "http://www.haodf.com/"
+    ],
+    "loginConf": {
+        "enable": false,
+        "url": "https://passport.haodf.com/user/showlogin",
+        "username": "qczjcjh123",
+        "password": "cjh4321"
+    },
+    "proxyConf": {
+        "enable": true,
+        "ips": [],
+        "userAgents": []
+    }
+}
