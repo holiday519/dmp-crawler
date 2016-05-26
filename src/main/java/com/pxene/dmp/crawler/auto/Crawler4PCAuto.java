@@ -21,6 +21,7 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -139,6 +140,18 @@ public class Crawler4PCAuto extends BaseCrawler
         if (REGFILTER_BBS_TOPIC_INFO.matcher(url).matches())
         {
             getBBSInfo(((HtmlParseData) page.getParseData()).getHtml());
+        }
+    }
+    
+    @Override
+    protected void onContentFetchError(WebURL webUrl) 
+    {
+        if (proxyConf.isEnable()) 
+        {
+            String[] params = proxyConf.randomIp().split(":");
+            System.getProperties().setProperty("proxySet", "true");
+            System.getProperties().setProperty("http.proxyHost", params[0]);
+            System.getProperties().setProperty("http.proxyPort", params[1]);
         }
     }
     
@@ -311,11 +324,14 @@ public class Crawler4PCAuto extends BaseCrawler
                     }
                     
                     // 将组织好的数据插入HBase
-                    HTableInterface table = HBaseTools.openTable(HBASE_AUTO_TABLE_NAME); 
-                    if (table != null) 
-                    { 
-                        HBaseTools.putRowDatas(table, preparedData);
-                        HBaseTools.closeTable(table); 
+                    if (preparedData.size() > 0) 
+                    {
+                        Table table = HBaseTools.openTable(HBASE_AUTO_TABLE_NAME);
+                        if (table != null) 
+                        {
+                            HBaseTools.putRowDatas(table, preparedData);
+                            HBaseTools.closeTable(table);
+                        }
                     }
                 }
                 logger.info("--------------------------------------");
@@ -486,11 +502,14 @@ public class Crawler4PCAuto extends BaseCrawler
             /*
              * 将组织好的数据插入HBase
              */
-            HTableInterface table = HBaseTools.openTable(HBASE_USER_TABLE_NAME);
-            if (table != null)
+            if (preparedData.size() > 0) 
             {
-                HBaseTools.putRowDatas(table, preparedData);
-                HBaseTools.closeTable(table);
+                Table table = HBaseTools.openTable(HBASE_USER_TABLE_NAME);
+                if (table != null) 
+                {
+                    HBaseTools.putRowDatas(table, preparedData);
+                    HBaseTools.closeTable(table);
+                }
             }
         }
         catch (Exception e)
@@ -569,13 +588,15 @@ public class Crawler4PCAuto extends BaseCrawler
                     
                     
                     // 将组织好的数据插入HBase
-                    HTableInterface table = HBaseTools.openTable(HBASE_POST_TABLE_NAME);
-                    if (table != null)
+                    if (preparedData.size() > 0) 
                     {
-                        HBaseTools.putRowDatas(table, preparedData);
-                        HBaseTools.closeTable(table);
+                        Table table = HBaseTools.openTable(HBASE_POST_TABLE_NAME);
+                        if (table != null) 
+                        {
+                            HBaseTools.putRowDatas(table, preparedData);
+                            HBaseTools.closeTable(table);
+                        }
                     }
-                    
                 }
             }
         }

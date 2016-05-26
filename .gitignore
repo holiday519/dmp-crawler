@@ -5,3 +5,4 @@
 /target/classes/com/pxene/dmp
 /target/test-classes/com/pxene/mycrawler
 /target/
+/*.log
