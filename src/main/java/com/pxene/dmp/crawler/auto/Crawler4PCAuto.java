@@ -1,7 +1,6 @@
 package com.pxene.dmp.crawler.auto;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,7 +19,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.LogManager;
@@ -63,9 +61,9 @@ public class Crawler4PCAuto extends BaseCrawler
     private static final String HBASE_USER_COLUMN_FAMILY = "user_info";
     private static final String HBASE_POST_COLUMN_FAMILY = "post_info";
     
-    private static final String HBASE_AUTO_TABLE_NAME = "t_auto_autoinfo_tony";
-    private static final String HBASE_USER_TABLE_NAME = "t_auto_userinfo_tony";
-    private static final String HBASE_POST_TABLE_NAME = "t_auto_postinfo_tony";
+    private static final String HBASE_AUTO_TABLE_NAME = "t_auto_autoinfo";
+    private static final String HBASE_USER_TABLE_NAME = "t_auto_userinfo";
+    private static final String HBASE_POST_TABLE_NAME = "t_auto_postinfo";
     
     private final static Pattern REGFILTER_USER_HOMEPAGE = Pattern.compile("^http[s]?://my\\.pcauto\\.com\\.cn/[0-9]*$");           // TA的主页
     private final static Pattern REGFILTER_USER_FLLWPAGE = Pattern.compile("^http[s]?://my\\.pcauto\\.com\\.cn/[0-9]*/follow$");    // TA的好友：关注网友
