@@ -130,6 +130,7 @@ public class Crawler4Autohome extends BaseCrawler {
 	@Override
 	public void visit(Page page) {
 		String url = page.getWebURL().getURL();
+		log.info("<=ee-debug=>visit:" + url);
 		if (url.matches(AUTO_INFO_REGEXS.STYLE_LIST)) {
 			getAutoInfo(url, ((HtmlParseData) page.getParseData()).getHtml());
 		}
@@ -149,6 +150,7 @@ public class Crawler4Autohome extends BaseCrawler {
 		if (doc == null) {
 			return;
 		}
+		log.info("<=ee-debug=>getAutoInfo:" + url);
 		Elements scripts = doc.select("script");
 		for (Element script : scripts) {
 			String content = script.html();
@@ -267,6 +269,7 @@ public class Crawler4Autohome extends BaseCrawler {
 		if (doc == null) {
 			return;
 		}
+		log.info("<=ee-debug=>getUserInfo:" + url);
 		// 获取userId
 		Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
 		String userId = StringUtils.regexpExtract(url, "cn/([0-9]+)");
@@ -438,6 +441,7 @@ public class Crawler4Autohome extends BaseCrawler {
 		if (doc == null) {
 			return;
 		}
+		log.info("<=ee-debug=>getPostInfo:" + url);
 		// 帖子
 		if (url.matches(POST_INFO_REGEXS.POST_DETAIL)) {
 			Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
@@ -473,6 +477,7 @@ public class Crawler4Autohome extends BaseCrawler {
 		if (doc == null) {
 			return;
 		}
+		log.info("<=ee-debug=>getDealerInfo:" + url);
 		if (url.matches(DEALER_INFO_REGEXS)) {
 			Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
 			Elements scripts = doc.select("script");

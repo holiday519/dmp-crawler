@@ -18,7 +18,7 @@ public class HBaseTools {
 
 	private static Configuration conf = new Configuration();
 	private static Connection conn = null;
-	private static ExecutorService pool = Executors.newFixedThreadPool(160);
+	private static ExecutorService pool = Executors.newFixedThreadPool(200);
 	
 	static {
 		conf.set("hbase.zookeeper.property.clientPort", "2181");
