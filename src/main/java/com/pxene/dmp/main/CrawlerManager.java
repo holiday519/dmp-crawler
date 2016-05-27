@@ -8,8 +8,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.codec.digest.DigestUtils;
 
+import com.pxene.dmp.common.CookieList;
 import com.pxene.dmp.common.CrawlerConfig;
 import com.pxene.dmp.common.CrawlerConfig.LoginConf;
 import com.pxene.dmp.common.SeedParser;
@@ -19,7 +19,6 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.CrawlController.WebCrawlerFactory;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.crawler.authentication.AuthInfo;
-import edu.uci.ics.crawler4j.crawler.authentication.BasicAuthInfo;
 import edu.uci.ics.crawler4j.crawler.authentication.FormAuthInfo;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
@@ -48,6 +47,9 @@ public class CrawlerManager {
 			String confPath = "/" + (packageName + "." + className).replace(".", "/") + ".json";
 			CrawlerConfig conf = CrawlerConfig.load(confPath);
 			LoginConf loginConf = conf.getLoginConf();
+			// 初始化cookie
+			CookieList.init(packageName + "." + className, loginConf);
+			
 			if (loginConf.isEnable()) {
 				List<AuthInfo> infos = new ArrayList<AuthInfo>();
 //				AuthInfo info = new BasicAuthInfo(loginConf.getUsername(), loginConf.getPassword(),

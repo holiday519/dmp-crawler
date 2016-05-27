@@ -31,7 +31,6 @@ import edu.uci.ics.crawler4j.url.WebURL;
 public class Crawler4Autohome extends BaseCrawler {
 
 	private Log log = LogFactory.getLog(Crawler4Autohome.class);
-	private static Map<String, String> cookie;
 	
 	// hbase参数
 	private static final String AUTO_INFO_TABLE = "t_auto_autoinfo";
@@ -90,13 +89,6 @@ public class Crawler4Autohome extends BaseCrawler {
 
 	public Crawler4Autohome() {
 		super("/" + Crawler4Autohome.class.getName().replace(".", "/") + ".json");
-		// 将cookie存入静态变量
-		String url = loginConf.getUrl();
-		String usrkey = loginConf.getUsrkey();
-		String username = loginConf.getUsername();
-		String pwdkey = loginConf.getPwdkey();
-		String password = loginConf.getPassword();
-		cookie = CookieList.get(url, usrkey, username, pwdkey, password);
 	}
 
 	@Override
@@ -320,7 +312,7 @@ public class Crawler4Autohome extends BaseCrawler {
 				String pageUrl = AJAX_URL_TMPL.USER_FOLLOWING_PAGE
 						.replace("{userid}", userId)
 						.replace("{pageno}", String.valueOf(pageNo));
-				Document pageDoc = connectUrl(pageUrl, cookie);
+				Document pageDoc = connectUrl(pageUrl, CookieList.get(Crawler4Autohome.class.getName()));
 				Elements lis = pageDoc.select("#ulList li");
 				for (Element li : lis) {
 					codes.add(li.attr("id"));
@@ -343,7 +335,7 @@ public class Crawler4Autohome extends BaseCrawler {
 				String pageUrl = AJAX_URL_TMPL.USER_FOLLOWERS_PAGE
 						.replace("{userid}", userId)
 						.replace("{pageno}", String.valueOf(pageNo));
-				Document pageDoc = connectUrl(pageUrl, cookie);
+				Document pageDoc = connectUrl(pageUrl, CookieList.get(Crawler4Autohome.class.getName()));
 				Elements lis = pageDoc.select("#ulList li");
 				for (Element li : lis) {
 					codes.add(li.attr("id"));
@@ -457,10 +449,11 @@ public class Crawler4Autohome extends BaseCrawler {
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "bbs_name", Bytes.toBytes(bbsName));
 			String postId = StringUtils.regexpExtract(url, "-[0-9]+-([0-9]+)-[0-9]+\\.html");
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_id", Bytes.toBytes(postId));
-			String title = doc.select("h1.rtitle").text();
-			if(title.length()==0){
-				title = doc.select("div.qa-maxtitle").text();
-			}
+			
+			Elements div1s = doc.select("div.maxtitle");
+			Elements div2s = doc.select("div.qa-maxtitle");
+			String title = div1s.size() > 0 ? div1s.get(0).text() : div2s.get(0).text();
+
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_title", Bytes.toBytes(title));
 			String context = doc.select("div.conttxt").get(0).text();
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_content", Bytes.toBytes(context));
