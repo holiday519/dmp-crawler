@@ -457,7 +457,10 @@ public class Crawler4Autohome extends BaseCrawler {
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "bbs_name", Bytes.toBytes(bbsName));
 			String postId = StringUtils.regexpExtract(url, "-[0-9]+-([0-9]+)-[0-9]+\\.html");
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_id", Bytes.toBytes(postId));
-			String title = doc.select("h1.rtitle").get(0).text();
+			String title = doc.select("h1.rtitle").text();
+			if(title.length()==0){
+				title = doc.select("div.qa-maxtitle").text();
+			}
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_title", Bytes.toBytes(title));
 			String context = doc.select("div.conttxt").get(0).text();
 			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_content", Bytes.toBytes(context));
