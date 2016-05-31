@@ -4,9 +4,11 @@
         "http://bbs.pcauto.com.cn/"
     ],
     "loginConf": {
-        "enable": true,
+        "enable": false,
         "url": "http://my.pcauto.com.cn/login.jsp",
+        "usrkey": "name",
         "username": "18910057215",
+        "pwdkey": "pwd",
         "password": "123!@#qwe"
     },
     "proxyConf": {

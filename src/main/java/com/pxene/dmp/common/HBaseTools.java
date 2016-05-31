@@ -82,16 +82,19 @@ public class HBaseTools {
 		List<Put> puts = new ArrayList<Put>();
 		for (Map.Entry<String, Map<String, Map<String, byte[]>>> rowData : rowDatas.entrySet()) {
 			String rowKey = rowData.getKey();
-			Map<String, Map<String, byte[]>> familyDatas = rowData.getValue();
-			Put put = new Put(rowKey.getBytes());
-			for (Map.Entry<String, Map<String, byte[]>> familyData : familyDatas.entrySet()) {
-				String familyName = familyData.getKey();
-				Map<String, byte[]> columnDatas = familyData.getValue();
-				for (Map.Entry<String, byte[]> columnData : columnDatas.entrySet()) {
-					put.addColumn(familyName.getBytes(), columnData.getKey().getBytes(), columnData.getValue()); 
-				}
+			if (rowKey != null)
+			{
+			    Map<String, Map<String, byte[]>> familyDatas = rowData.getValue();
+			    Put put = new Put(rowKey.getBytes());
+			    for (Map.Entry<String, Map<String, byte[]>> familyData : familyDatas.entrySet()) {
+			        String familyName = familyData.getKey();
+			        Map<String, byte[]> columnDatas = familyData.getValue();
+			        for (Map.Entry<String, byte[]> columnData : columnDatas.entrySet()) {
+			            put.addColumn(familyName.getBytes(), columnData.getKey().getBytes(), columnData.getValue()); 
+			        }
+			    }
+			    puts.add(put);
 			}
-			puts.add(put);
 		}
 		try {
 			table.put(puts);

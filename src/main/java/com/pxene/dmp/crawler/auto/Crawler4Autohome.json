@@ -1,22 +1,22 @@
 {
-	seeds : [
+	"seeds" : [
 		"http://car.autohome.com.cn/zhaoche/pinpai/",
 		"http://club.autohome.com.cn/",
 		"http://zhidao.autohome.com.cn/list/s1-[1-74309].html",
 		"http://dealer.autohome.com.cn/china/0_0_0_0_1_1_0.html",
 		"http://dealer.autohome.com.cn/china/0_0_0_0_1_2_0.html"
 	],
-	loginConf : {
-		enable : true,
-		url : "http://account.autohome.com.cn/Login/ValidIndex",
-		usrkey : "name",
-		username : "qczjcjh123",
-		pwdkey : "pwd",
-		password : "cjh4321"
+	"loginConf" : {
+		"enable" : true,
+		"url" : "http://account.autohome.com.cn/Login/ValidIndex",
+		"usrkey" : "name",
+		"username" : "qczjcjh123",
+		"pwdkey" : "pwd",
+		"password" : "cjh4321"
 	},
-	proxyConf : {
-		enable : true,
-		ips : [],
-		userAgents : []
+	"proxyConf" : {
+		"enable" : true,
+		"ips" : [],
+		"userAgents" : []
 	}
 }

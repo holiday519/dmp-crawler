@@ -1,5 +1,6 @@
 package com.pxene.dmp.main;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import org.apache.commons.cli.Options;
 
 import com.pxene.dmp.common.CookieList;
 import com.pxene.dmp.common.CrawlerConfig;
+import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.CrawlerConfig.LoginConf;
 import com.pxene.dmp.common.SeedParser;
 
@@ -36,6 +38,7 @@ public class CrawlerManager {
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("crawlPages", true, "input class name of crawler");
+		options.addOption("runnerClassName", true, "input full class name of Custom crawler");
 		CommandLineParser parser = new BasicParser();
 		CommandLine line = parser.parse(options, args);
 
@@ -94,7 +97,21 @@ public class CrawlerManager {
 							packageName + "." + className).newInstance();
 				}
 			}, numberOfCrawlers);
-		} else {
+		}
+		else if (line.hasOption("runnerClassName"))
+		{
+		    // e.g. -runnerClassName com.pxene.dmp.crawler.stock.Crawler410jqka
+            final String runnerClassName = line.getOptionValue("runnerClassName");
+            System.out.println(runnerClassName);
+            
+            Class<?> c = Class.forName(runnerClassName);
+            IPageCrawler pageCrawler = (IPageCrawler) c.newInstance();
+            
+            Method doCrawlMethod = c.getDeclaredMethod("doCrawl");
+            doCrawlMethod.invoke(pageCrawler);
+		}
+		else 
+		{
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("options", options);
 		}
