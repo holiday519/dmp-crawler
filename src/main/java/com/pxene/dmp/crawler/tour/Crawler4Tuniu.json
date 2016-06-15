@@ -1,0 +1,18 @@
+{
+    "seeds": [
+        "http://www.tuniu.com/"
+    ],
+    "loginConf": {
+        "enable": false,
+        "url": "https://passport.tuniu.com/login?origin=http://www.tuniu.com/ssoConnect",
+        "usrkey": "name",
+        "username": "18910057215",
+        "pwdkey": "pwd",
+        "password": "123!@#qwe"
+    },
+    "proxyConf": {
+        "enable": true,
+        "ips": [],
+        "userAgents": []
+    }
+}

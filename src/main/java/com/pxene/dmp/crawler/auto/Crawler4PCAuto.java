@@ -559,6 +559,20 @@ public class Crawler4PCAuto extends BaseCrawler
                         postDate = Long.toString(str2Timestamp(postDate));
                     }
                     
+                    // 为减少抓取数量，只获取当年的帖子
+                    String currYearStr = new SimpleDateFormat("yyyy").format(new Date());
+                    String postYearStr = "";
+                    System.out.println(postDate);
+                    if (postDate != null && !"".equals(postDate) && postDate.contains("-"))
+                    {
+                        postYearStr = postDate.substring(0, postDate.indexOf("-"));
+                    }
+                    if (!currYearStr.equals(postYearStr))
+                    {
+                        logger.info("非当年数据，不需要录入。");
+                        return;
+                    }
+                    
                     String topicTitle = "";
                     Elements topicTitleElement = doc.select("title");
                     if (topicTitleElement != null && topicTitleElement.size() > 0)
@@ -1036,6 +1050,19 @@ public class Crawler4PCAuto extends BaseCrawler
                         if (postDateDiv != null)
                         {
                             postDate = postDateDiv.text().replaceAll("发表于", "").trim();
+                            
+                            String currYearStr = new SimpleDateFormat("yyyy").format(new Date());
+                            String postYearStr = "";
+                            System.out.println(postDate);
+                            if (postDate != null && !"".equals(postDate) && postDate.contains("-"))
+                            {
+                                postYearStr = postDate.substring(0, postDate.indexOf("-"));
+                            }
+                            if (currYearStr.equals(postYearStr))
+                            {
+                                System.out.println("是当年数据，需要录入。");
+                            }
+                            
                             postDate = Long.toString(str2Timestamp(postDate));
                         }
                         
