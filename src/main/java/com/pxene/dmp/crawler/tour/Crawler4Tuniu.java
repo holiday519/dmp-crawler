@@ -1,5 +1,6 @@
 package com.pxene.dmp.crawler.tour;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -119,7 +120,7 @@ public class Crawler4Tuniu extends BaseCrawler
     {
         try
         {
-            logger.info("网页地址：" + url);
+            //logger.info("网页地址：" + url);
             Document doc = Jsoup.connect(url).get();
             if (doc == null)
             {
@@ -181,14 +182,17 @@ public class Crawler4Tuniu extends BaseCrawler
                 }
             }
             
-            logger.info("线路编号：" + toursNO);
-            logger.info("线路名称：" + toursName);
-            logger.info("线路类型：" + toursType);
+            //logger.info("线路编号：" + toursNO);
+            //logger.info("线路名称：" + toursName);
+            //logger.info("线路类型：" + toursType);
+            
+            logger.info("\n网页地址：" + url + "\n线路编号：" + toursNO + "\n线路名称：" + toursName + "\n线路类型：" + toursType + "\n-----------------------");
             
             insertData(preparedData, HBASE_ROWKEY_PREFIX + toursNO, HBASE_TOUR_COLUMN_FAMILY, "route_name", Bytes.toBytes(toursName));
             insertData(preparedData, HBASE_ROWKEY_PREFIX + toursNO, HBASE_TOUR_COLUMN_FAMILY, "route_type", Bytes.toBytes(toursType));
             
-            logger.info("-----------------------");
+            
+            //logger.info("-----------------------");
             
             // 将组织好的数据插入HBase
             if (preparedData.size() > 0) 
@@ -200,6 +204,8 @@ public class Crawler4Tuniu extends BaseCrawler
                     HBaseTools.closeTable(table);
                 }
             }
+            
+            //logger.info("共抓得：" + counts.size() + "条。");
         }
         catch (Exception e)
         {
@@ -208,7 +214,20 @@ public class Crawler4Tuniu extends BaseCrawler
         }
     }
     
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
+    {
+        String url = "http://www.tuniu.com/";
+        Document document = Jsoup.connect(url).get();
+        Elements elements = document.select("textarea.storedata");
+        System.out.println(elements);
+        
+        for (Element e : elements)
+        {
+            System.out.println("--> " + StringUtils.regexpExtract(e.text(), "<a href=\"http://(.*)\"  onclick="));
+        }
+    }
+    
+    public static void testParse(String[] args)
     {
         try
         {
