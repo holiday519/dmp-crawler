@@ -1,10 +1,19 @@
 package com.pxene.dmp.crawler.tour;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.LogManager;
@@ -14,7 +23,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.pxene.dmp.common.HBaseTools;
+import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.crawler.BaseCrawler;
 
@@ -22,7 +35,7 @@ import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 
-public class Crawler4Tuniu extends BaseCrawler
+public class Crawler4Tuniu extends BaseCrawler implements IPageCrawler
 {
     private static Logger logger = LogManager.getLogger(Crawler4Tuniu.class.getName());
     
@@ -32,6 +45,9 @@ public class Crawler4Tuniu extends BaseCrawler
     private final static Pattern REGFILTER_TOURS_PAGE = Pattern.compile("^http[s]?://\\w*\\.tuniu\\.com/tours/[0-9]{9}$");
     
     private final static Pattern REGFILTER_DRIVE_PAGE = Pattern.compile("^http[s]?://\\w*\\.tuniu\\.com/drive/[0-9]{9}$");
+    
+    private final static Pattern REGFILTER_WHOLE_PAGE = Pattern.compile("^http[s]?://.*\\.tuniu\\.com/.*$");
+    
     
     /**
      * 表名
@@ -47,6 +63,9 @@ public class Crawler4Tuniu extends BaseCrawler
      * 列簇名称
      */
     private static final String HBASE_TOUR_COLUMN_FAMILY = "route_info";
+    
+    private static Set<String> counts = new HashSet<String>();
+    private static Set<String> fails = new HashSet<String>();
     
     
     /**
@@ -69,13 +88,18 @@ public class Crawler4Tuniu extends BaseCrawler
         {
             return false;
         }
-        
+        /*
         if (REGFILTER_TOURS_PAGE.matcher(href).matches())
         {
             return true;
         }
         
         if (REGFILTER_DRIVE_PAGE.matcher(href).matches())
+        {
+            return true;
+        }
+        */
+        if (REGFILTER_WHOLE_PAGE.matcher(href).matches())
         {
             return true;
         }
@@ -187,6 +211,7 @@ public class Crawler4Tuniu extends BaseCrawler
             //logger.info("线路类型：" + toursType);
             
             logger.info("\n网页地址：" + url + "\n线路编号：" + toursNO + "\n线路名称：" + toursName + "\n线路类型：" + toursType + "\n-----------------------");
+            counts.add(toursNO);
             
             insertData(preparedData, HBASE_ROWKEY_PREFIX + toursNO, HBASE_TOUR_COLUMN_FAMILY, "route_name", Bytes.toBytes(toursName));
             insertData(preparedData, HBASE_ROWKEY_PREFIX + toursNO, HBASE_TOUR_COLUMN_FAMILY, "route_type", Bytes.toBytes(toursType));
@@ -205,7 +230,7 @@ public class Crawler4Tuniu extends BaseCrawler
                 }
             }
             
-            //logger.info("共抓得：" + counts.size() + "条。");
+            logger.info("共抓得：" + counts.size() + "条。");
         }
         catch (Exception e)
         {
@@ -214,24 +239,135 @@ public class Crawler4Tuniu extends BaseCrawler
         }
     }
     
-    public static void main(String[] args) throws IOException
+    @Override
+    public void doCrawl() throws IOException
     {
-        String url = "http://www.tuniu.com/";
-        Document document = Jsoup.connect(url).get();
-        Elements elements = document.select("textarea.storedata");
-        System.out.println(elements);
+        // TODO 自动生成的方法存根
         
-        for (Element e : elements)
-        {
-            System.out.println("--> " + StringUtils.regexpExtract(e.text(), "<a href=\"http://(.*)\"  onclick="));
-        }
     }
     
-    public static void testParse(String[] args)
+    public static void main(String[] args) throws IOException
+    {
+        testReplenish();
+    }
+    
+    public static void testReplenish() throws IOException
+    {
+        InputStream in = Crawler4Tuniu.class.getResourceAsStream("Crawler4Tuniu.dat");
+        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        
+        String line = null;
+        while ((line = br.readLine()) != null)
+        {
+            TourPOJO tourPOJO = doParse(line);
+            System.out.println("TONY -> " + tourPOJO);
+        }
+        
+        System.out.println("===========================");
+        
+    }
+    
+    public static TourPOJO doParse(String code)
+    {
+        TourPOJO result = null;
+        
+        String url = "";
+        
+        int redo = 0;
+        while (redo < 3)
+        {
+            try
+            {
+                url = "http://www.tuniu.com/tours/" + code;
+                Document doc = Jsoup.connect(url).get();
+                
+                String toursNO = "";
+                String toursName = "";
+                String toursType = "";
+                
+                toursNO = StringUtils.regexpExtract(url, "http[s]?://.*\\.tuniu\\.com/tours/(\\d+)");
+                
+                if (url.contains("temai.tuniu"))    // 途牛特卖需要单独解析
+                {
+                    toursType = "特卖";
+    
+                    String source = getDOMTextBySelector(doc, ".product_detail > h2");
+                    
+                    if (!source.equals(""))
+                    {
+                        toursNO = StringUtils.regexpExtract(source, "（.*：(\\d*)）");
+                        toursName = StringUtils.regexpExtract(source, "(.*)（.*）");
+                    }
+                    else
+                    {
+                        toursNO = StringUtils.regexpExtract(url, "http[s]?://.*\\.tuniu\\.com/tours/(\\d+)");
+                        toursName = getDOMTextBySelector(doc, "#con_top > div.title.clearfix > div.title_l > h1");
+                    }
+                }
+                else
+                {
+                    if (doc.select("#index1200 > div.wrapBody > div > div.mainContent > div.main_top > div.tours-sub-info.clearfix > div.ser_sm.fl > span.c_f80").size() > 0)
+                    {
+                        toursNO = getDOMTextBySelector(doc, "#index1200 > div.wrapBody > div > div.mainContent > div.main_top > div.tours-sub-info.clearfix > div.ser_sm.fl > span.c_f80");
+                        if (toursNO.contains("编号"))
+                        {
+                            toursNO = toursNO.replace("编号", "");
+                        }
+                        
+                        toursName = getDOMTextBySelector(doc, "#index1200 > div.wrapBody > div > div.mainContent > div.main_top > div.top_tit > h1");
+                        
+                        toursType = getDOMClassBySelector(doc, "#index1200 > div.wrapBody > div > div.mainContent > div.main_top > div.tours-sub-info.clearfix > div.ser_sm.fl > span");
+                        toursType = getToursTypeBySpanClass(toursType);
+                    }
+                    else
+                    {
+                        toursNO = getDOMTextBySelector(doc, "#index1200 > div.wrapper_bg > div > div.product_info > div.product_name_tips > span.priduct_no");
+                        if (toursNO.contains("编号"))
+                        {
+                            toursNO = toursNO.replace("编号", "");
+                        }
+                        
+                        toursName = getDOMTextBySelector(doc, "#index1200 > div.wrapper_bg > div > div.product_info > div.product_name_bar > h1");
+                        
+                        toursType = "自助游";
+                    }
+                };
+                
+                if (toursNO == null || "".equals(toursNO))
+                {
+                    throw new Exception("严重错误：未解析出线路编号！");
+                }
+                
+                result = new TourPOJO();
+                result.setToursNO(toursNO);
+                result.setToursName(toursName);
+                result.setToursType(toursType);
+                
+                break;
+            }
+            catch (Exception e)
+            {
+                redo++;
+                System.out.println(e);
+                System.out.println("正在对URL：" + url + "，进行第" + redo + "次重试！");
+                continue;
+            }
+        }
+        
+        // 如果尝试3次仍然未解析成功，则需要添加该URL到失败的列表中
+        if (redo >= 3)
+        {
+            fails.add(url);
+        }
+        
+        return result;
+    }
+    
+    public static void testParse(String url)
     {
         try
         {
-            String url = "http://www.tuniu.com/tours/210177475";
+            //String url = "http://all.tuniu.com/abroad/";
             Document doc = Jsoup.connect(url).get();
             if (doc == null)
             {
@@ -358,5 +494,57 @@ public class Crawler4Tuniu extends BaseCrawler
         
         return result;
     }
+}
+
+class TourPOJO
+{
+    private String toursNO = "";
+    private String toursName = "";
+    private String toursType = "";
     
+    
+    public String getToursNO()
+    {
+        return toursNO;
+    }
+    public void setToursNO(String toursNO)
+    {
+        this.toursNO = toursNO;
+    }
+    public String getToursName()
+    {
+        return toursName;
+    }
+    public void setToursName(String toursName)
+    {
+        this.toursName = toursName;
+    }
+    public String getToursType()
+    {
+        return toursType;
+    }
+    public void setToursType(String toursType)
+    {
+        this.toursType = toursType;
+    }
+    
+    
+    public TourPOJO()
+    {
+        super();
+    }
+    public TourPOJO(String toursNO, String toursName, String toursType)
+    {
+        super();
+        this.toursNO = toursNO;
+        this.toursName = toursName;
+        this.toursType = toursType;
+    }
+    
+    
+    @Override
+    public String toString()
+    {
+        return "TourPOJO [toursNO=" + toursNO + ", toursName=" + toursName + ", toursType=" + toursType + "]";
+    }
 }
