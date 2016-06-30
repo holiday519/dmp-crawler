@@ -12,6 +12,7 @@ import com.pxene.dmp.common.CrawlerConfig.LoginConf;
 import com.pxene.dmp.common.CrawlerConfig.ProxyConf;
 
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
+import edu.uci.ics.crawler4j.url.WebURL;
 
 public class BaseCrawler extends WebCrawler {
 	
@@ -77,5 +78,15 @@ public class BaseCrawler extends WebCrawler {
 		}
 		
 		return doc;
+	}
+	
+	@Override
+	protected void onContentFetchError(WebURL webUrl) {
+		if (proxyConf.isEnable()) {
+			String[] params = proxyConf.randomIp().split(":");
+			System.getProperties().setProperty("proxySet", "true");
+			System.getProperties().setProperty("http.proxyHost", params[0]);
+			System.getProperties().setProperty("http.proxyPort", params[1]);
+		}
 	}
 }

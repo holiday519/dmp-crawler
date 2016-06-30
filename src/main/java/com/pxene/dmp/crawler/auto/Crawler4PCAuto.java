@@ -141,18 +141,6 @@ public class Crawler4PCAuto extends BaseCrawler
         }
     }
     
-    @Override
-    protected void onContentFetchError(WebURL webUrl) 
-    {
-        if (proxyConf.isEnable()) 
-        {
-            String[] params = proxyConf.randomIp().split(":");
-            System.getProperties().setProperty("proxySet", "true");
-            System.getProperties().setProperty("http.proxyHost", params[0]);
-            System.getProperties().setProperty("http.proxyPort", params[1]);
-        }
-    }
-    
     private void getAutoInfo(String html)
     {
         Document doc = Jsoup.parse(html);

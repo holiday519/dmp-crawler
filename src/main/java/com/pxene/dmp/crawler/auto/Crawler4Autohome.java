@@ -535,32 +535,4 @@ public class Crawler4Autohome extends BaseCrawler {
 		}
 	}
 	
-	@Override
-	protected void onContentFetchError(WebURL webUrl) {
-		if (proxyConf.isEnable()) {
-			String[] params = proxyConf.randomIp().split(":");
-			System.getProperties().setProperty("proxySet", "true");
-			System.getProperties().setProperty("http.proxyHost", params[0]);
-			System.getProperties().setProperty("http.proxyPort", params[1]);
-		}
-	}
-	
-//	public static void main(String[] args) {
-//		String str = "2016-6-6 02:35:29";
-//		// 改为yyyyMMddHHmmss
-//		String date = str.split(" ")[0];
-//		String year = date.split("-")[0];
-//		String month = date.split("-")[1];
-//		if (month.length() == 1) {
-//			month = "0" + month;
-//		}
-//		String day = date.split("-")[2];
-//		if (day.length() == 1) {
-//			day = "0" + day;
-//		}
-//		date = year + month + day;
-//		String time = str.split(" ")[1].replace(":", "");
-//		System.out.println(date + time);
-//	}
-	
 }
