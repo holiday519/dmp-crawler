@@ -1,19 +1,15 @@
 package com.pxene.dmp.crawler.tour;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.LogManager;
@@ -23,9 +19,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.StringUtils;
@@ -43,8 +36,6 @@ public class Crawler4Tuniu extends BaseCrawler implements IPageCrawler
     private final static Pattern REGFILTER_EXTENSION = Pattern.compile(".*(\\.(css|js|gif|jp[e]?g|png|mp3|mp4|zip|gz))$");
     
     private final static Pattern REGFILTER_TOURS_PAGE = Pattern.compile("^http[s]?://\\w*\\.tuniu\\.com/tours/[0-9]{9}$");
-    
-    private final static Pattern REGFILTER_DRIVE_PAGE = Pattern.compile("^http[s]?://\\w*\\.tuniu\\.com/drive/[0-9]{9}$");
     
     private final static Pattern REGFILTER_WHOLE_PAGE = Pattern.compile("^http[s]?://.*\\.tuniu\\.com/.*$");
     
@@ -88,17 +79,6 @@ public class Crawler4Tuniu extends BaseCrawler implements IPageCrawler
         {
             return false;
         }
-        /*
-        if (REGFILTER_TOURS_PAGE.matcher(href).matches())
-        {
-            return true;
-        }
-        
-        if (REGFILTER_DRIVE_PAGE.matcher(href).matches())
-        {
-            return true;
-        }
-        */
         if (REGFILTER_WHOLE_PAGE.matcher(href).matches())
         {
             return true;
@@ -125,19 +105,6 @@ public class Crawler4Tuniu extends BaseCrawler implements IPageCrawler
             getToursInfo(url);
         }
     }
-    
-    @Override
-    protected void onContentFetchError(WebURL webUrl) 
-    {
-        if (proxyConf.isEnable()) 
-        {
-            String[] params = proxyConf.randomIp().split(":");
-            System.getProperties().setProperty("proxySet", "true");
-            System.getProperties().setProperty("http.proxyHost", params[0]);
-            System.getProperties().setProperty("http.proxyPort", params[1]);
-        }
-    }
-    
     
     
     private void getToursInfo(String url)
@@ -367,7 +334,6 @@ public class Crawler4Tuniu extends BaseCrawler implements IPageCrawler
     {
         try
         {
-            //String url = "http://all.tuniu.com/abroad/";
             Document doc = Jsoup.connect(url).get();
             if (doc == null)
             {
