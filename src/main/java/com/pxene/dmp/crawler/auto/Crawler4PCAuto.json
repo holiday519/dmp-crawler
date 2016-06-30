@@ -12,7 +12,7 @@
         "password": "123!@#qwe"
     },
     "proxyConf": {
-        "enable": true,
+        "enable": false,
         "ips": [],
         "userAgents": []
     }
