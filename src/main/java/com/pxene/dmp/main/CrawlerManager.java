@@ -38,7 +38,8 @@ public class CrawlerManager {
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("crawlPages", true, "input class name of crawler");
-		options.addOption("runnerClassName", true, "input full class name of Custom crawler");
+		options.addOption("runnerClassName", true,
+				"input full class name of Custom crawler");
 		CommandLineParser parser = new BasicParser();
 		CommandLine line = parser.parse(options, args);
 
@@ -47,29 +48,32 @@ public class CrawlerManager {
 			final String className = line.getOptionValue("crawlPages");
 			CrawlConfig config = new CrawlConfig();
 			// 读取配置文件
-			String confPath = "/" + (packageName + "." + className).replace(".", "/") + ".json";
+			String confPath = "/"
+					+ (packageName + "." + className).replace(".", "/")
+					+ ".json";
 			CrawlerConfig conf = CrawlerConfig.load(confPath);
 			LoginConf loginConf = conf.getLoginConf();
 			// 初始化cookie
 			CookieList.init(packageName + "." + className, loginConf);
-			
+
 			if (loginConf.isEnable()) {
 				List<AuthInfo> infos = new ArrayList<AuthInfo>();
-//				AuthInfo info = new BasicAuthInfo(loginConf.getUsername(), loginConf.getPassword(),
-//						loginConf.getUrl());
-				AuthInfo info = new FormAuthInfo(loginConf.getUsername(), 
-						loginConf.getPassword(), loginConf.getUrl(), loginConf.getUsrkey(), 
-						loginConf.getPwdkey());
+				// AuthInfo info = new BasicAuthInfo(loginConf.getUsername(),
+				// loginConf.getPassword(),
+				// loginConf.getUrl());
+				AuthInfo info = new FormAuthInfo(loginConf.getUsername(),
+						loginConf.getPassword(), loginConf.getUrl(),
+						loginConf.getUsrkey(), loginConf.getPwdkey());
 				infos.add(info);
 				config.setAuthInfos(infos);
 			}
 			config.setUserAgentString(userAgent);
-			
+
 			// 抓取深度
-//			config.setMaxDepthOfCrawling(5);
+			 config.setMaxDepthOfCrawling(5);
 			// 最大网页数
-//			config.setMaxPagesToFetch(10000);
-			
+			 config.setMaxPagesToFetch(100000);
+
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setSocketTimeout(20000);
 			config.setConnectionTimeout(20000);
@@ -81,8 +85,8 @@ public class CrawlerManager {
 			robotstxtConfig.setUserAgentName(userAgent);
 			RobotstxtServer robotstxtServer = new RobotstxtServer(
 					robotstxtConfig, pageFetcher);
-			CrawlController controller = new CrawlController(config, pageFetcher,
-					robotstxtServer);
+			CrawlController controller = new CrawlController(config,
+					pageFetcher, robotstxtServer);
 			// 加载种子
 			for (String seed : conf.getSeeds()) {
 				for (String s : SeedParser.parse(seed)) {
@@ -97,21 +101,18 @@ public class CrawlerManager {
 							packageName + "." + className).newInstance();
 				}
 			}, numberOfCrawlers);
-		}
-		else if (line.hasOption("runnerClassName"))
-		{
-		    // e.g. -runnerClassName com.pxene.dmp.crawler.stock.Crawler410jqka
-            final String runnerClassName = line.getOptionValue("runnerClassName");
-            System.out.println(runnerClassName);
-            
-            Class<?> c = Class.forName(runnerClassName);
-            IPageCrawler pageCrawler = (IPageCrawler) c.newInstance();
-            
-            Method doCrawlMethod = c.getDeclaredMethod("doCrawl");
-            doCrawlMethod.invoke(pageCrawler);
-		}
-		else 
-		{
+		} else if (line.hasOption("runnerClassName")) {
+			// e.g. -runnerClassName com.pxene.dmp.crawler.stock.Crawler410jqka
+			final String runnerClassName = line
+					.getOptionValue("runnerClassName");
+			System.out.println(runnerClassName);
+
+			Class<?> c = Class.forName(runnerClassName);
+			IPageCrawler pageCrawler = (IPageCrawler) c.newInstance();
+
+			Method doCrawlMethod = c.getDeclaredMethod("doCrawl");
+			doCrawlMethod.invoke(pageCrawler);
+		} else {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("options", options);
 		}

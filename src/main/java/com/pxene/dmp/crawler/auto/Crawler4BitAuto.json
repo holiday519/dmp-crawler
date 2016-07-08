@@ -1,0 +1,19 @@
+{
+	seeds : [
+		"http://beijing.bitauto.com/",
+		"http://baa.bitauto.com/"
+	],
+	loginConf : {
+		enable : true,
+		url : "http://i.yiche.com/authenservice/login.html",
+		usrkey : "u",
+		username : "13269601809",
+		pwdkey : "p",
+		password : "wgz13269601809"
+	},
+	proxyConf : {
+		enable : true,
+		ips : [],
+		userAgents : []
+	}
+}
