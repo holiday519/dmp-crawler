@@ -4,12 +4,12 @@
     ],
     "loginConf": {
         "enable": false,
-        "url": "https://passport.haodf.com/user/showlogin",
-        "username": "qczjcjh123",
-        "password": "cjh4321"
+        "url": "",
+        "username": "",
+        "password": ""
     },
     "proxyConf": {
-        "enable": true,
+        "enable": false,
         "ips": [],
         "userAgents": []
     }

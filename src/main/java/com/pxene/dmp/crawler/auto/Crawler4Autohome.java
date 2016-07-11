@@ -46,6 +46,8 @@ public class Crawler4Autohome extends BaseCrawler {
 	private static final String DEALER_INFO_FAMILY = "dealer_info";
 
 	private static final String ROWKEY_PREFIX = "00030005_";
+	
+	private static final String CURRENT_YEAR = "2016";
 
 	// 正则
 	private final static String FILTER_REGEX = ".*(\\.(css|js|bmp|gif|jpe?g"
@@ -60,6 +62,7 @@ public class Crawler4Autohome extends BaseCrawler {
 		public static final String BRAND_LIST = "^http://club\\.autohome\\.com\\.cn/bbs/brand-[0-9]+-c-[0-9]+-[0-9]+\\.html.*$";
 		public static final String ZHIDAO_LIST = "^http://zhidao\\.autohome\\.com\\.cn/list/s1-[0-9]+\\.html$";
 		public static final String POST_DETAIL = "^http://club\\.autohome\\.com\\.cn/bbs/(thread|threadqa)-(a|c|o)-[0-9]+-[0-9]+-[0-9]+\\.html$";
+		public static final String POST_ITEM = "^http://club\\.autohome\\.com\\.cn/bbs/(thread|threadqa)-(a|c|o)-[0-9]+-[0-9]+-1\\.html$";
 	}
 	private class USER_INFO_REGEXS {
 		public static final String WILD_CARD = "^http://i\\.autohome\\.com\\.cn/[0-9]+.*$|^http://jiage\\.autohome\\.com\\.cn/web/price/otherlist\\?memberid=[0-9]+.*$";
@@ -129,7 +132,7 @@ public class Crawler4Autohome extends BaseCrawler {
 		if (url.matches(USER_INFO_REGEXS.WILD_CARD)) {
 			getUserInfo(url, ((HtmlParseData) page.getParseData()).getHtml());
 		}
-		if (url.matches(POST_INFO_REGEXS.POST_DETAIL)) {
+		if (url.matches(POST_INFO_REGEXS.POST_ITEM)) {
 			getPostInfo(url, ((HtmlParseData) page.getParseData()).getHtml());
 		}
 		if (url.matches(DEALER_INFO_REGEXS)) {
@@ -434,36 +437,51 @@ public class Crawler4Autohome extends BaseCrawler {
 			return;
 		}
 		log.info("<=ee-debug=>getPostInfo:" + url);
+		// 发帖时间（精确到秒）
+		// yyyy-M-d HH:mm:ss
+		String str = doc.getElementsByAttributeValue("xname", "date").get(0).text().trim();
+		if (!str.startsWith(CURRENT_YEAR)) {
+			return;
+		}
+		// 改为yyyyMMddHHmmss
+		String date = str.split(" ")[0];
+		String year = date.split("-")[0];
+		String month = date.split("-")[1];
+		if (month.length() == 1) {
+			month = "0" + month;
+		}
+		String day = date.split("-")[2];
+		if (day.length() == 1) {
+			day = "0" + day;
+		}
+		date = year + month + day;
+		String time = str.split(" ")[1].replace(":", "");
 		// 帖子
-		if (url.matches(POST_INFO_REGEXS.POST_DETAIL)) {
-			Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
-			Element post = doc.select("#F0").get(0);
-			String userId = post.attr("uid");
-			// 发帖时间（精确到秒）
-			String time = doc.getElementsByAttributeValue("xname", "date").get(0).text().replaceAll("[^0-9]", "");
-			String rowKey = ROWKEY_PREFIX + userId + "_" + time;
-			
-			String bbsId = StringUtils.regexpExtract(url, "-([0-9]+)-[0-9]+-[0-9]+\\.html");
-			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "bbs_id", Bytes.toBytes(bbsId));
-			String bbsName = doc.select("#a_bbsname").get(0).text();
-			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "bbs_name", Bytes.toBytes(bbsName));
-			String postId = StringUtils.regexpExtract(url, "-[0-9]+-([0-9]+)-[0-9]+\\.html");
-			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_id", Bytes.toBytes(postId));
-			
-			Elements div1s = doc.select("div.maxtitle");
-			Elements div2s = doc.select("div.qa-maxtitle");
-			String title = div1s.size() > 0 ? div1s.get(0).text() : div2s.get(0).text();
+		Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
+		Element post = doc.select("#F0").get(0);
+		String userId = post.attr("uid");
+		String rowKey = ROWKEY_PREFIX + userId + "_" + date + time;
+		
+		String bbsId = StringUtils.regexpExtract(url, "-([0-9]+)-[0-9]+-1\\.html");
+		insertData(rowDatas, rowKey, POST_INFO_FAMILY, "bbs_id", Bytes.toBytes(bbsId));
+		String bbsName = doc.select("#a_bbsname").get(0).text();
+		insertData(rowDatas, rowKey, POST_INFO_FAMILY, "bbs_name", Bytes.toBytes(bbsName));
+		String postId = StringUtils.regexpExtract(url, "-[0-9]+-([0-9]+)-1\\.html");
+		insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_id", Bytes.toBytes(postId));
+		
+		Elements div1s = doc.select("div.maxtitle");
+		Elements div2s = doc.select("div.qa-maxtitle");
+		String title = div1s.size() > 0 ? div1s.get(0).text() : div2s.get(0).text();
 
-			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_title", Bytes.toBytes(title));
-			String context = doc.select("div.conttxt").get(0).text();
-			insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_content", Bytes.toBytes(context));
-			
-			if (rowDatas.size() > 0) {
-				Table table = HBaseTools.openTable(POST_INFO_TABLE);
-				if (table != null) {
-					HBaseTools.putRowDatas(table, rowDatas);
-					HBaseTools.closeTable(table);
-				}
+		insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_title", Bytes.toBytes(title));
+		String context = doc.select("div.conttxt").get(0).text();
+		insertData(rowDatas, rowKey, POST_INFO_FAMILY, "post_content", Bytes.toBytes(context));
+		
+		if (rowDatas.size() > 0) {
+			Table table = HBaseTools.openTable(POST_INFO_TABLE);
+			if (table != null) {
+				HBaseTools.putRowDatas(table, rowDatas);
+				HBaseTools.closeTable(table);
 			}
 		}
 	}
@@ -474,58 +492,46 @@ public class Crawler4Autohome extends BaseCrawler {
 			return;
 		}
 		log.info("<=ee-debug=>getDealerInfo:" + url);
-		if (url.matches(DEALER_INFO_REGEXS)) {
-			Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
-			Elements scripts = doc.select("script");
-			Map<String, String> locs = new HashMap<String, String>();
-			for (Element script : scripts) {
-				String content = script.html();
-				if (content.contains("data=")) {
-					String jStr = StringUtils.regexpExtract(content, "data=(\\[.*?\\])").trim();
-					if (jStr.length() > 0) {
-						// 解析json
-						JsonArray dealers = parser.parse(jStr).getAsJsonArray();
-						for (JsonElement dealer : dealers) {
-							JsonObject jObj = dealer.getAsJsonObject();
-							String dealerId = StringUtils.regexpExtract(jObj.get("url").getAsString(), "cn/([0-9]+)/index");
-							String latlon = jObj.get("latlon").getAsString();
-							locs.put(dealerId, latlon);
-						}
+		Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
+		Elements scripts = doc.select("script");
+		Map<String, String> locs = new HashMap<String, String>();
+		for (Element script : scripts) {
+			String content = script.html();
+			if (content.contains("data=")) {
+				String jStr = StringUtils.regexpExtract(content, "data=(\\[.*?\\])").trim();
+				if (jStr.length() > 0) {
+					// 解析json
+					JsonArray dealers = parser.parse(jStr).getAsJsonArray();
+					for (JsonElement dealer : dealers) {
+						JsonObject jObj = dealer.getAsJsonObject();
+						String dealerId = StringUtils.regexpExtract(jObj.get("url").getAsString(), "cn/([0-9]+)/index");
+						String latlon = jObj.get("latlon").getAsString();
+						locs.put(dealerId, latlon);
 					}
 				}
 			}
-			Elements divs = doc.select("div.dealer-cont");
-			for (Element div : divs) {
-				Element a = div.select("a.btn-map").get(0);
-				String id = a.attr("js-did");
-				String rowKey = ROWKEY_PREFIX + id;
-				String name = a.attr("js-dname");
-				insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "name", Bytes.toBytes(name));
-				String brand = a.attr("js-dbrand");
-				insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "brand", Bytes.toBytes(brand));
-				String address = div.getElementsContainingOwnText("地址：").get(0).attr("title");
-				insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "address", Bytes.toBytes(address));
-				String latlon = locs.containsKey(id) ? locs.get(id) : "";
-				insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "latlon", Bytes.toBytes(latlon));
-			}
-			
-			if (rowDatas.size() > 0) {
-				Table table = HBaseTools.openTable(DEALER_INFO_TABLE);
-				if (table != null) {
-					HBaseTools.putRowDatas(table, rowDatas);
-					HBaseTools.closeTable(table);
-				}
-			}
 		}
-	}
-	
-	@Override
-	protected void onContentFetchError(WebURL webUrl) {
-		if (proxyConf.isEnable()) {
-			String[] params = proxyConf.randomIp().split(":");
-			System.getProperties().setProperty("proxySet", "true");
-			System.getProperties().setProperty("http.proxyHost", params[0]);
-			System.getProperties().setProperty("http.proxyPort", params[1]);
+		Elements divs = doc.select("div.dealer-cont");
+		for (Element div : divs) {
+			Element a = div.select("a.btn-map").get(0);
+			String id = a.attr("js-did");
+			String rowKey = ROWKEY_PREFIX + id;
+			String name = a.attr("js-dname");
+			insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "name", Bytes.toBytes(name));
+			String brand = a.attr("js-dbrand");
+			insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "brand", Bytes.toBytes(brand));
+			String address = div.getElementsContainingOwnText("地址：").get(0).attr("title");
+			insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "address", Bytes.toBytes(address));
+			String latlon = locs.containsKey(id) ? locs.get(id) : "";
+			insertData(rowDatas, rowKey, DEALER_INFO_FAMILY, "latlon", Bytes.toBytes(latlon));
+		}
+		
+		if (rowDatas.size() > 0) {
+			Table table = HBaseTools.openTable(DEALER_INFO_TABLE);
+			if (table != null) {
+				HBaseTools.putRowDatas(table, rowDatas);
+				HBaseTools.closeTable(table);
+			}
 		}
 	}
 	

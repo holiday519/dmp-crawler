@@ -15,7 +15,7 @@
 		"password" : "cjh4321"
 	},
 	"proxyConf" : {
-		"enable" : true,
+		"enable" : false,
 		"ips" : [],
 		"userAgents" : []
 	}
