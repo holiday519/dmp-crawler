@@ -1,6 +1,6 @@
 {
 	seeds : [
-		"http://beijing.bitauto.com/",
+		"http://car.bitauto.com/",
 		"http://baa.bitauto.com/"
 	],
 	loginConf : {

@@ -49,8 +49,8 @@ public class Crawler4BitAuto extends BaseCrawler {
 			.compile(".*(\\.(css|js|bmp|gif|jpe?g"
 					+ "|png|tiff?|mid|mp2|mp3|mp4"
 					+ "|wav|avi|mov|mpeg|ram|m4v|pdf"
-					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
-	private static final String CONTAINS = "^http://beijing.bitauto.com/.*$|^http://car.bitauto.com/.*$|^http://baa.bitauto.com/.*$|^http://i.yiche.com/.*$";
+					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");                
+	private static final String CONTAINS = "^http://car.bitauto.com/.*$|^http://baa.bitauto.com/.*$|^http://i.yiche.com/.*$";
 	private static final String LIST_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/$";
 	private static final String DETAIL_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/([a-z,A-Z,0-9]+)/$";
 	private static final String ASK_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/ask/$";
