@@ -1,4 +1,4 @@
-package com.pxene.dmp.crawler.auto;
+package com.pxene.dmp.crawler.weibo;
 
 import java.util.Iterator;
 import java.util.regex.Pattern;
@@ -15,12 +15,12 @@ import com.pxene.dmp.crawler.BaseCrawler;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
 
-public class Crawler4Weibo extends BaseCrawler {
-	public Crawler4Weibo() {
-		super("/" + Crawler4Weibo.class.getName().replace(".", "/") + ".json");
+public class Crawler4WeiboForSina extends BaseCrawler {
+	public Crawler4WeiboForSina() {
+		super("/" + Crawler4WeiboForSina.class.getName().replace(".", "/") + ".json");
 	}
 
-	private Log logger = LogFactory.getLog(Crawler4Weibo.class);
+	private Log logger = LogFactory.getLog(Crawler4WeiboForSina.class);
 
 	private final static Pattern FILTERS = Pattern
 			.compile(".*(\\.(css|js|bmp|gif|jpe?g"
