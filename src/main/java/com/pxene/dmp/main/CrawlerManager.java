@@ -34,7 +34,7 @@ public class CrawlerManager {
 		String crawlStorageFolder = "temp";
 		int numberOfCrawlers = 50;
 		// 默认的ua
-		String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
+		String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36";
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("crawlPages", true, "input class name of crawler");
