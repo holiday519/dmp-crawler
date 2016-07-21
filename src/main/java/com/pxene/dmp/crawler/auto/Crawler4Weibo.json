@@ -1,0 +1,18 @@
+{
+	seeds : [
+		"https://passport.weibo.com/visitor/visitor?_rand=1469099245.2079&a=enter&domain=.weibo.com&entry=miniblog&ua=php-sso_sdk_client-0.6.23&url=http%3A%2F%2Fweibo.com%2F%3Fcategory%3D0"
+	],
+	loginConf : {
+		enable : false,
+		url : "http://weibo.com/login.php?url=http%3A%2F%2Fweibo.com%2F&comefrom=loginlayer",
+		usrkey : "un",
+		username : "13269601809",
+		pwdkey : "p",
+		password : "13269601809"
+	},
+	proxyConf : {
+		enable : true,
+		ips : [],
+		userAgents : []
+	}
+}
