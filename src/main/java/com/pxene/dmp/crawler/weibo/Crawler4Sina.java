@@ -15,12 +15,12 @@ import com.pxene.dmp.crawler.BaseCrawler;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
 
-public class Crawler4WeiboForSina extends BaseCrawler {
-	public Crawler4WeiboForSina() {
-		super("/" + Crawler4WeiboForSina.class.getName().replace(".", "/") + ".json");
+public class Crawler4Sina extends BaseCrawler {
+	public Crawler4Sina() {
+		super("/" + Crawler4Sina.class.getName().replace(".", "/") + ".json");
 	}
 
-	private Log logger = LogFactory.getLog(Crawler4WeiboForSina.class);
+	private Log logger = LogFactory.getLog(Crawler4Sina.class);
 
 	private final static Pattern FILTERS = Pattern
 			.compile(".*(\\.(css|js|bmp|gif|jpe?g"
