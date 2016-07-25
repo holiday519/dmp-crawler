@@ -33,10 +33,10 @@ public class Crawler4BitAuto extends BaseCrawler {
 
 	// 入库所需参数
 	private static final String ROWKEY_PREFIX = "00030006_";
-	
-	//汽车类网站用户信息表t_auto_userinfo(user_info列簇)
+
+	// 汽车类网站用户信息表t_auto_userinfo(user_info列簇)
 	private static final String TABLE_NAME_USER = "t_auto_userinfo";
-	//汽车类网站汽车信息表t_auto_autoinfo(auto_info列簇)
+	// 汽车类网站汽车信息表t_auto_autoinfo(auto_info列簇)
 	private static final String TABLE_NAME_AUTO = "t_auto_autoinfo";
 	// 汽车类网站用户发帖表t_auto_postinfo(post_info列簇)
 	private static final String TABLE_NAME_POST = "t_auto_postinfo";
@@ -49,7 +49,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 			.compile(".*(\\.(css|js|bmp|gif|jpe?g"
 					+ "|png|tiff?|mid|mp2|mp3|mp4"
 					+ "|wav|avi|mov|mpeg|ram|m4v|pdf"
-					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");                
+					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 	private static final String CONTAINS = "^http://car.bitauto.com/.*$|^http://baa.bitauto.com/.*$|^http://i.yiche.com/.*$";
 	private static final String LIST_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/$";
 	private static final String DETAIL_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/([a-z,A-Z,0-9]+)/$";
@@ -100,6 +100,9 @@ public class Crawler4BitAuto extends BaseCrawler {
 	private static final String PLAN = "body > div.mybox_page > div.homepage_box > div.line_box > div.aiche_box > div";
 	private static final String PLAN_A = "div > div.mycar_photo.mycar_140 > a";
 	
+	private static final String BBS_SELECTOR = "#postleft1 > div.user_photo.firstFloor > a";
+	private static final String BBS_CARD_TIME = "body > div.bt_page > div.postcontbox > div.postcont_list.post_fist > div > div.postright > div.post_text.post_text_sl > div.post_fist_title > div.time_box > span";
+
 	@Override
 	protected void onContentFetchError(WebURL webUrl) {
 		if (proxyConf.isEnable()) {
@@ -127,7 +130,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 			visitDetailPage(url);
 		} else if (url.matches(BBS_REGEXP)) {
 			// 访问论坛界面
-//			visitBBSPage(url);
+			// visitBBSPage(url);
 		} else if (url.matches(PERSON_REGEXP)) {
 			// 访问用户个人主页
 			visitUserPage(url);
@@ -143,7 +146,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 		// 解析用户个人主页
 		logger.info("user_url:" + url);
 		Document user_doc = connectUrl(url);
-		//获取用户id
+		// 获取用户id
 		String user_id = "";
 		Pattern pattern = Pattern.compile(PERSON_REGEXP);
 		Matcher matcher = pattern.matcher(url);
@@ -290,7 +293,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 		if (user_cars_sb.length() > 0) {
 			user_car = user_cars_sb.substring(0, user_cars_sb.length() - 1);
 		}
-		
+
 		String rowkey = ROWKEY_PREFIX + user_id;
 		logger.info("user_rowkey:" + rowkey);
 		logger.info("user_id:" + user_id);
@@ -305,12 +308,11 @@ public class Crawler4BitAuto extends BaseCrawler {
 		datas.put("level", Bytes.toBytes(level));
 		datas.put("user_car", Bytes.toBytes(user_car));
 
-		
-		  Table table = HBaseTools.openTable(TABLE_NAME_USER); 
-		  if (table != null) { 
-			  HBaseTools.putColumnDatas(table, rowkey,FAMILY_NAME_USER, datas); 
-			  HBaseTools.closeTable(table); 
-		  }
+		Table table = HBaseTools.openTable(TABLE_NAME_USER);
+		if (table != null) {
+			HBaseTools.putColumnDatas(table, rowkey, FAMILY_NAME_USER, datas);
+			HBaseTools.closeTable(table);
+		}
 	}
 
 	/**
@@ -322,13 +324,17 @@ public class Crawler4BitAuto extends BaseCrawler {
 		// 解析论坛信息
 		logger.info("bbs_url:" + url);
 		Document bbs_doc = connectUrl(url);
-		//获取用户id
-		String user_id = getTextBySelector(bbs_doc, "#postleft1 > div.user_photo.firstFloor > a", HREF, "^http://i.yiche.com/u([0-9]+)/$");
+		// 获取用户id
+		String user_id = getTextBySelector(bbs_doc, BBS_SELECTOR, HREF,
+				"^http://i.yiche.com/u([0-9]+)/$");
 		// 获取发帖时间
-		String original_card_time = getTextBySelector(bbs_doc, "body > div.bt_page > div.postcontbox > div.postcont_list.post_fist > div > div.postright > div.post_text.post_text_sl > div.post_fist_title > div.time_box > span", TEXT, null);
+		String original_card_time = getTextBySelector(bbs_doc, BBS_CARD_TIME,
+				TEXT, null);
 		// 格式化时间(yyyyMMddHHmmss)
-		String time_stamp = StringUtils.date2TimeStamp(original_card_time, "yyyy-MM-dd HH:mm:ss");
-		String new_card_time = StringUtils.timeStamp2Date(time_stamp, "yyyyMMddHHmmss");
+		String time_stamp = StringUtils.date2TimeStamp(original_card_time,
+				"yyyy-MM-dd HH:mm:ss");
+		String new_card_time = StringUtils.timeStamp2Date(time_stamp,
+				"yyyyMMddHHmmss");
 		// 获取论坛名称
 		String bbs_name = getTextBySelector(bbs_doc, BBS_NAME_SELECTOR, TEXT,
 				null);
@@ -349,28 +355,26 @@ public class Crawler4BitAuto extends BaseCrawler {
 		String person_url = getTextBySelector(bbs_doc, BBS_PERSON_SELECTOR,
 				HREF, null);
 		myController.addSeed(person_url);
-		
+
 		// 获取帖子内容
 		String rowkey = ROWKEY_PREFIX + user_id + "_" + new_card_time;
 		logger.info("card_rowkey:" + rowkey);
-//		logger.info("bbs_id:" + bbs_id + ",bbs_name:" + bbs_name);
+		// logger.info("bbs_id:" + bbs_id + ",bbs_name:" + bbs_name);
 		logger.info("post_id:" + card_id + ",post_title:" + card_name);
 		logger.info("post_content:" + card_content);
 
 		Map<String, byte[]> datas = new HashMap<String, byte[]>();
-//		datas.put("bbs_id", Bytes.toBytes(bbs_id));
+		// datas.put("bbs_id", Bytes.toBytes(bbs_id));
 		datas.put("bbs_name", Bytes.toBytes(bbs_name.toString()));
 		datas.put("post_id", Bytes.toBytes(card_id));
 		datas.put("post_title", Bytes.toBytes(card_name));
 		datas.put("post_content", Bytes.toBytes(card_content));
 
-		
-		  /*Table table = HBaseTools.openTable(TABLE_NAME_POST); 
-		  if (table != null) { 
-			  HBaseTools.putColumnDatas(table, rowkey,FAMILY_NAME_POST, datas); 
-			  HBaseTools.closeTable(table);
-		  }*/
-		 
+		/*
+		 * Table table = HBaseTools.openTable(TABLE_NAME_POST); if (table !=
+		 * null) { HBaseTools.putColumnDatas(table, rowkey,FAMILY_NAME_POST,
+		 * datas); HBaseTools.closeTable(table); }
+		 */
 
 		System.out.println("================================bbs_name:"
 				+ bbs_name);
@@ -514,7 +518,6 @@ public class Crawler4BitAuto extends BaseCrawler {
 		}
 		size = chang + "-" + kuan + "-" + gao;
 
-
 		// rowkey(网站编号+品牌编号+具体编号)
 		String rowkey = ROWKEY_PREFIX + brand_id + "_" + car_id;
 		String name = car_name;
@@ -532,7 +535,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 		Map<String, byte[]> datas = new HashMap<String, byte[]>();
 		datas.put("name", Bytes.toBytes(name));
 		datas.put("style", Bytes.toBytes(style_name));
-		datas.put("price", Bytes.toBytes(price)); // 车主油耗
+		datas.put("price", Bytes.toBytes(price));
 		datas.put("fuel", Bytes.toBytes(fuel));
 		datas.put("size", Bytes.toBytes(size));
 		datas.put("gearbox", Bytes.toBytes(gearbox));
@@ -565,8 +568,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 					.iterator();
 			while (list_table_a_iterator.hasNext()) {
 				Element list_table_a_element = list_table_a_iterator.next();
-				String a_href = list_table_a_element.attr("href");
-
+				String a_href = list_table_a_element.attr(HREF);
 				if (a_href.matches(LIST_TABLE_A_HREF_SELECTOR)) {
 					String seed_url = DOMAIN + a_href;
 					myController.addSeed(seed_url);
