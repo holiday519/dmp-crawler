@@ -12,7 +12,7 @@
 		password : "wgz13269601809"
 	},
 	proxyConf : {
-		enable : true,
+		enable : false,
 		ips : [],
 		userAgents : []
 	}
