@@ -50,9 +50,9 @@ public class Crawler4BitAuto extends BaseCrawler {
 					+ "|png|tiff?|mid|mp2|mp3|mp4"
 					+ "|wav|avi|mov|mpeg|ram|m4v|pdf"
 					+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
-	private static final String CONTAINS = "^http://car.bitauto.com/.*$|^http://baa.bitauto.com/.*$|^http://i.yiche.com/.*$";
-	private static final String LIST_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/$";
-	private static final String DETAIL_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/([a-z,A-Z,0-9]+)/$";
+	private static final String CONTAINS = "^http://car.bitauto.com/.*$|^http://i.yiche.com/.*$";
+	private static final String LIST_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9,-]+)/$";
+	private static final String DETAIL_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9,-]+)/([a-z,A-Z,0-9]+)/$";
 	private static final String ASK_REGEXP = "^http://car.bitauto.com/([a-z,A-Z,0-9]+)/ask/$";
 	private static final String BBS_REGEXP = "^http://baa.bitauto.com/.*/thread-([0-9]+).html$";
 	private static final String PERSON_REGEXP = "^http://i.yiche.com/u([0-9]+)/$";
@@ -116,7 +116,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
 		String href = url.getURL().toLowerCase();
-		return !FILTERS.matcher(href).matches() && href.matches(CONTAINS);
+		return !FILTERS.matcher(href).matches() && href.matches(CONTAINS) && !href.matches(BBS_REGEXP);
 	}
 
 	@Override
@@ -376,16 +376,6 @@ public class Crawler4BitAuto extends BaseCrawler {
 		 * datas); HBaseTools.closeTable(table); }
 		 */
 
-		System.out.println("================================bbs_name:"
-				+ bbs_name);
-		System.out
-				.println("================================card_id:" + card_id);
-		System.out.println("================================card_name:"
-				+ card_name);
-		System.out.println("================================card_content:"
-				+ card_content);
-		System.out.println("================================person_url:"
-				+ person_url);
 	}
 
 	/**
@@ -571,7 +561,7 @@ public class Crawler4BitAuto extends BaseCrawler {
 				String a_href = list_table_a_element.attr(HREF);
 				if (a_href.matches(LIST_TABLE_A_HREF_SELECTOR)) {
 					String seed_url = DOMAIN + a_href;
-					myController.addSeed(seed_url);
+					myController.addSeed("http://db.auto.sohu.com/yiqiaudi/4414/132660");
 				}
 			}
 		}
