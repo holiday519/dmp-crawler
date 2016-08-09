@@ -1,0 +1,19 @@
+{
+	seeds : [
+		"http://db.auto.sohu.com/",
+		"http://saa.auto.sohu.com/"
+	],
+	loginConf : {
+		enable : true,
+		url : "http://i.auto.sohu.com/user/login/toLogin.at",
+		usrkey : "u",
+		username : "13269103783",
+		pwdkey : "p",
+		password : "13269103783"
+	},
+	proxyConf : {
+		enable : true,
+		ips : [],
+		userAgents : []
+	}
+}
