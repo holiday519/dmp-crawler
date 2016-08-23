@@ -8,8 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
+
+import redis.clients.jedis.Jedis;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -169,6 +172,19 @@ public class CrawlerConfig {
 
 		public String randomUserAgent() {
 			return userAgents[new Random().nextInt(userAgents.length)];
+		}
+		
+		public Map<String, String> getRandomIp(){
+			Jedis jedis = RedisUtils.getConn();
+			jedis.select(3);
+			Set<String> keys = jedis.keys("*");
+			int size = keys.size();
+			Random r = new Random();
+			int r_num = r.nextInt(size);
+			Object[] key_arr = keys.toArray();
+			String key = key_arr[r_num].toString();
+			Map<String, String> hgetAll = jedis.hgetAll(key);
+			return hgetAll;
 		}
 	}
 

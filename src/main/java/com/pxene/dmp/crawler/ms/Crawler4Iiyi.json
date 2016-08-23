@@ -1,0 +1,18 @@
+{
+	seeds : [
+		"http://bbs.iiyi.com/forum.php?gid=228"
+	],
+	loginConf : {
+		enable : false,
+		url : "",
+		usrkey : "u",
+		username : "",
+		pwdkey : "p",
+		password : ""
+	},
+	proxyConf : {
+		enable : false,
+		ips : [],
+		userAgents : []
+	}
+}

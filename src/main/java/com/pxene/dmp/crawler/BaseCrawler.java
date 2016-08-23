@@ -61,7 +61,7 @@ public class BaseCrawler extends WebCrawler {
 	protected Document connectUrl(String url) {
 		Document doc = null;
 		try {
-			doc = Jsoup.connect(url).timeout(20000).get();
+			doc = Jsoup.connect(url).userAgent("chrome").timeout(20000).get();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

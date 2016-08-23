@@ -1,0 +1,18 @@
+{
+	seeds : [
+		"http://www.dxy.cn/bbs/index.html"
+	],
+	loginConf : {
+		enable : false,
+		url : "",
+		usrkey : "u",
+		username : "",
+		pwdkey : "p",
+		password : ""
+	},
+	proxyConf : {
+		enable : true,
+		ips : [],
+		userAgents : []
+	}
+}
