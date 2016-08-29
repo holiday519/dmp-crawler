@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.commons.lang.time.DateUtils;
+
 public class StringUtils
 {
     /**
@@ -15,7 +17,7 @@ public class StringUtils
      * @param theDay yyyy-MM-dd 格式的字符串
      * @return       yyyyMMdd   格式的字符串   
      */
-    public static String getYestodayStr(String theDay)
+    public static String getYesterdayStr(String theDay)
     {
         Date date = null;
         if (theDay == null || "".equals(theDay))
@@ -44,9 +46,16 @@ public class StringUtils
         return new SimpleDateFormat("yyyyMMdd").format(yestodayDate);
     }
     
+    public static String getTheDayBeforeYesterdayStr()
+    {
+        Date tdby = DateUtils.addDays(new Date(), -2);
+        return new SimpleDateFormat("yyyyMMdd").format(tdby);
+    }
+    
     public static void main(String[] args)
     {
-        System.out.println(StringUtils.getYestodayStr(null)+"%");
-        System.out.println(StringUtils.getYestodayStr("2016-01-01")+"%");
+        System.out.println(StringUtils.getYesterdayStr(null)+"%");
+        System.out.println(StringUtils.getYesterdayStr("2016-01-01")+"%");
+        System.out.println(getTheDayBeforeYesterdayStr()+"%");
     }
 }

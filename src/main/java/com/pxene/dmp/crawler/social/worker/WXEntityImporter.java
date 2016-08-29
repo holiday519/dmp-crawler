@@ -129,11 +129,6 @@ public class WXEntityImporter
         logger.debug("==> URL: " + url);
         
         
-        boolean isWXBizInsert = false;
-        boolean isWXArtInsert = false;
-        boolean isWXSlrInsert = false;
-        
-        
         // 解析爬取的HTML页面，获得公众号信息+文章信息
         OfficialAccount tmpOfficialAccount = doReatableParse(url);
         tmpOfficialAccount.setMetaData(product);
@@ -142,8 +137,7 @@ public class WXEntityImporter
             // 插入到HBase公众号表(t_weixin_biz_prod)
             try
             {
-                insertIntoHBase(HBASE_TABLE_NAME_BIZ, prepareBizData(hbaseRowkey, tmpOfficialAccount));
-                isWXBizInsert = true;
+                insertIntoHBase(HBASE_TABLE_NAME_BIZ, prepareBizData(biz, tmpOfficialAccount));
             }
             catch (Exception exception)
             {
@@ -155,7 +149,6 @@ public class WXEntityImporter
             try
             {
                 insertIntoHBase(HBASE_TABLE_NAME_ART, prepareArtData(hbaseRowkey, tmpOfficialAccount));
-                isWXArtInsert = true;
             }
             catch (Exception exception)
             {
@@ -179,7 +172,6 @@ public class WXEntityImporter
             if (wxSolrIndexBuilder.doBuildIndex(tmpOfficialAccount) > 0)
             {
                 logger.debug("已成功创建Solr索引.");
-                isWXSlrInsert = true;
             }
         }
         catch (Exception exception)

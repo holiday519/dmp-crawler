@@ -1,11 +1,13 @@
 package com.pxene.dmp.crawler.social.currency;
 
+import java.util.concurrent.Callable;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.pxene.dmp.crawler.social.worker.WXEntityImporter;
 
-public class Consumer implements Runnable
+public class Consumer implements Callable<Boolean>
 {
     private static Logger logger = LogManager.getLogger(Consumer.class.getName());
     
@@ -27,36 +29,21 @@ public class Consumer implements Runnable
     
     
     @Override
-    public void run()
+    public Boolean call() throws InterruptedException
     {
         while (true)
         {
-            try
+            Product product = storage.pop();
+            
+            if (product == null)
             {
-                Product product = storage.pop();
-                
+                logger.info(name + " ==> 已等待10分钟依然无法获得数据，退出.");
+                return Boolean.FALSE;
+            }
+            else
+            {
                 logger.info(name + "正在录入[" + product + "]的数据...");
                 importer.doImport(product, resource);
-                
-            }
-            catch (InterruptedException exception)
-            {
-                exception.printStackTrace();
-            }
-            catch (Exception e) 
-            {
-                e.printStackTrace();
-            }
-            finally
-            {
-                try
-                {
-                    Thread.sleep(500);
-                }
-                catch (InterruptedException e)
-                {
-                    e.printStackTrace();
-                }
             }
         }
     }

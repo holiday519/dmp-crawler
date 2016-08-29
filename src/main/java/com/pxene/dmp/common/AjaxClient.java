@@ -63,6 +63,20 @@ public class AjaxClient {
 		return getResult(resp);
 	}
 	
+    public String queryJSONArrayStr()
+    {
+        HttpResponse resp = null;
+        try
+        {
+            resp = client.execute(request);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return getJsonArrayResult(resp);
+    }
+	
 	public void close() {
 		try {
 			client.close();
@@ -82,4 +96,21 @@ public class AjaxClient {
 		}
 		return GSON.fromJson(json, JsonObject.class);
 	}
+	
+    private String getJsonArrayResult(HttpResponse resp)
+    {
+        HttpEntity entity = resp.getEntity();
+        String json = "";
+        
+        try
+        {
+            json = EntityUtils.toString(entity, "GBK");
+        }
+        catch (Exception exception)
+        {
+            exception.printStackTrace();
+            return "";
+        }
+        return json;
+    }
 }
