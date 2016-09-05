@@ -40,7 +40,15 @@ public class WXMetaDataGenerator
     }
     
     
-    public List<Product> generate(String dataStr) throws IOException, SQLException
+    /**
+     * 从Hive中取得biz, mid, idx, sn四个参数，以此构建微信公众号文章的URL，爬取这个URL，解析其内容，保存至HBase中，并创建Solr索引.
+     * @param dataStr           需要从Hive中查找的规定日期
+     * @param partitionSource   需要从Hive中查找的来源，1：联通；2：电信
+     * @return
+     * @throws IOException
+     * @throws SQLException
+     */
+    public List<Product> generate(String dataStr, String partitionSource) throws IOException, SQLException
     {
         List<Product> result = new ArrayList<Product>();
         
@@ -55,8 +63,7 @@ public class WXMetaDataGenerator
             
             logger.info("正在查询Hive表：‘weixin’，请稍候......");
             
-            //ResultSet res = stmt.executeQuery("select biz,mid,idx,sn from weixin where biz != '' and mid != '' and idx != '' and sn != '' and data_time LIKE '20160709%' group by biz, mid, idx, sn");
-            String sql = "select biz,mid,idx,sn from weixin where biz != '' and mid != '' and idx != '' and sn != '' and data_time LIKE '" + dataStr +"%' group by biz, mid, idx, sn";
+            String sql = "select biz,mid,idx,sn from weixin where biz != '' and mid != '' and idx != '' and sn != '' and data_time LIKE '" + dataStr +"%' and partition_source = '" + partitionSource + "' group by biz, mid, idx, sn";
             logger.info("查询SQL：" + sql);
             ResultSet res = stmt.executeQuery(sql);
             

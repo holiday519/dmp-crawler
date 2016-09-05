@@ -7,9 +7,16 @@ public class Application implements IPageCrawler
 {
 
     @Override
-    public void doCrawl() throws Exception
+    public void doCrawl(String[] args) throws Exception
     {
-        ProducerConsumer.main(null);
+        if (args != null)
+        {
+            for (String string : args)
+            {
+                System.out.println("Param ==> " + string);
+            }
+        }
+        ProducerConsumer.main(args);
     }
     
 }

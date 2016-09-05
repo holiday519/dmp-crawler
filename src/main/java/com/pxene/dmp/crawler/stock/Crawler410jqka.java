@@ -67,7 +67,7 @@ public class Crawler410jqka implements IPageCrawler
     
     
     @Override
-    public void doCrawl() throws IOException
+    public void doCrawl(String[] args) throws IOException
     {
         // 声明需要保存至HBase的数据的结果集：
         Map<String, Map<String, Map<String, byte[]>>> preparedData = new HashMap<String, Map<String, Map<String, byte[]>>>();
@@ -257,7 +257,7 @@ public class Crawler410jqka implements IPageCrawler
     public static void main(String[] args) throws IOException
     {
         Crawler410jqka crawler = new Crawler410jqka();
-        crawler.doCrawl();
+        crawler.doCrawl(null);
     }
     
 }

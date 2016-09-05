@@ -11,7 +11,6 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,7 +22,6 @@ import com.pxene.dmp.crawler.social.utils.HBaseTools;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 
 public class WXEntityImporter
@@ -39,16 +37,6 @@ public class WXEntityImporter
      * 默认的重试次数
      */
     private static final int REPEAT_COUNT = 3;
-    
-    /**
-     * Redis 连接URL
-     */
-    private static final String REDIS_HOST = "192.168.3.176";
-    
-    /**
-     * Redis 连接端口
-     */
-    private static final int REDIS_PORT = 6379;
     
     /**
      * HBase表名
@@ -72,32 +60,15 @@ public class WXEntityImporter
      */
     private static List<Product> skipProducts = new ArrayList<Product>();
     
-    /**
-     * Jedis 连接池
-     */
-    //private static JedisPool jedisPool = null;
-    
    
     private WXSolrIndexBuilder wxSolrIndexBuilder = new WXSolrIndexBuilder();
     
-    /*
-    static
-    {
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(5000);
-        config.setMaxIdle(5);
-        config.setMaxWaitMillis(10 * 1000);
-        config.setTestOnBorrow(true);
-        jedisPool = new JedisPool(config, REDIS_HOST, REDIS_PORT);
-    }
-    */
     
     public void doImport(Product product, Resource resource)
     {
-        // Jedis jedis = jedisPool.getResource();
         JedisPool jedisPool = resource.getJedisPool();
         Jedis jedis = jedisPool.getResource();
-        jedis.select(1);
+        jedis.select(15);
         
         
         String biz = product.getBiz();
@@ -166,19 +137,10 @@ public class WXEntityImporter
         
         
         // 在Solr中构建索引
+        /*
         logger.info("开始执行Solr索引构建操作...");
-        try
-        {
-            if (wxSolrIndexBuilder.doBuildIndex(tmpOfficialAccount) > 0)
-            {
-                logger.debug("已成功创建Solr索引.");
-            }
-        }
-        catch (Exception exception)
-        {
-            redisHset(jedis, "fail_job_solr_index", hbaseRowkey, dateStr);
-            exception.printStackTrace();
-        }
+        insertIntoSolr(tmpOfficialAccount, hbaseRowkey, dateStr, jedis);
+        */
         
         
         if (jedis != null) 
@@ -189,12 +151,13 @@ public class WXEntityImporter
     }
     
     
+    
+
+
     public void redisHset(Jedis jedis, String key, String field, String value)
     {
-        //Jedis jedis = jedisPool.getResource();
-        jedis.select(2);
+        jedis.select(14);
         jedis.hset(key, field, value);
-        //jedis.close();
     }
     
     
@@ -370,6 +333,24 @@ public class WXEntityImporter
         }
     }
     
+    @SuppressWarnings("unused")
+    private void insertIntoSolr(OfficialAccount tmpOfficialAccount, String hbaseRowkey, String dateStr, Jedis jedis)
+    {
+        // 使用组织好的数据构建Solr索引
+        try
+        {
+            if (wxSolrIndexBuilder.doBuildIndex(tmpOfficialAccount) > 0)
+            {
+                logger.debug("已成功创建Solr索引.");
+            }
+        }
+        catch (Exception exception)
+        {
+            redisHset(jedis, "fail_job_solr_index", hbaseRowkey, dateStr);
+            exception.printStackTrace();
+        }
+        
+    }
     
     public static void main(String[] args) throws IOException
     {

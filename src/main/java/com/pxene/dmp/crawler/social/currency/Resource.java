@@ -5,8 +5,8 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class Resource
 {
-    private static final String REDIS_HOST = "192.168.3.176";
-    private static final int REDIS_PORT = 6379;
+    private static final String REDIS_HOST = "192.168.3.178";
+    private static final int REDIS_PORT = 7000;
     
     JedisPool jedisPool = null;
     

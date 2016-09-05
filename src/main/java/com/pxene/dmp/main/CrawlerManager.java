@@ -1,11 +1,10 @@
 package com.pxene.dmp.main;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -13,13 +12,12 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
-import com.pxene.dmp.common.ConfigUtil;
 import com.pxene.dmp.common.CookieList;
 import com.pxene.dmp.common.CrawlerConfig;
 import com.pxene.dmp.common.CrawlerConfig.LoginConf;
 import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.SeedParser;
-import com.pxene.dmp.crawler.ms.Crawler4ZhishikuFJ;
+import com.pxene.dmp.common.StringUtils;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
@@ -43,7 +41,7 @@ public class CrawlerManager {
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("crawlPages", true, "input class name of crawler");
-		options.addOption("runnerClassName", true,
+		options.addOption("runner", true,
 				"input full class name of Custom crawler");
 		CommandLineParser parser = new BasicParser();
 		CommandLine line = parser.parse(options, args);
@@ -116,20 +114,54 @@ public class CrawlerManager {
 							packageName + "." + className).newInstance();
 				}
 			}, numberOfCrawlers);
+		}
+		else if (line.hasOption("runner")) 
+		{
+			// without param, e.g. -runner com.pxene.dmp.crawler.stock.Crawler410jqka
+		    // with    param, e.g. -runner com.pxene.dmp.crawler.stock.Crawler410jqka[p1%3dv1%26p2%3dv2%26p3%3dmp3%3bmp4]
+			final String runner = line.getOptionValue("runner");
+			System.out.println("runner: " + runner);
 			
-			
-		} else if (line.hasOption("runnerClassName")) {
-			// e.g. -runnerClassName com.pxene.dmp.crawler.stock.Crawler410jqka
-			final String runnerClassName = line
-					.getOptionValue("runnerClassName");
-			System.out.println(runnerClassName);
+			String className = runner;
+			String[] lineArgs = null;
+			if (runner != null && !"".equals(runner) && runner.contains("["))
+			{
+			    className = runner.substring(0, runner.indexOf("["));
+		        String params = StringUtils.regexpExtract(runner, "\\w+\\[(.*)?\\]").trim();
+		        
+		        if (params != null && params.equals(""))
+		        {
+		            System.out.println("-runner's param is incorrect.");
+		            System.exit(-1);
+		        }
+		        
+		        System.out.println("Recevied runner param is " + params);
+		        try
+		        {
+		            params = URLDecoder.decode(params, "utf-8");
+		            lineArgs = params.split("&");
+		        }
+		        catch (UnsupportedEncodingException e)
+		        {
+		            params = "";
+		        }
+			}
 
-			Class<?> c = Class.forName(runnerClassName);
+            Class<?> c = Class.forName(className);
 			IPageCrawler pageCrawler = (IPageCrawler) c.newInstance();
-
-			Method doCrawlMethod = c.getDeclaredMethod("doCrawl");
-			doCrawlMethod.invoke(pageCrawler);
-		} else {
+			
+			Method doCrawlMethod = c.getDeclaredMethod("doCrawl", String[].class);
+            if (lineArgs != null)
+            {
+                doCrawlMethod.invoke(pageCrawler, new Object[]{ lineArgs });
+            }
+            else
+            {
+                doCrawlMethod.invoke(pageCrawler, new Object[]{ null });
+            }
+		} 
+		else 
+		{
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("options", options);
 		}

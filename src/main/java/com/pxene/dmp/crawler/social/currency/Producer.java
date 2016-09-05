@@ -6,7 +6,6 @@ import java.util.concurrent.Callable;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.pxene.dmp.crawler.social.utils.StringUtils;
 import com.pxene.dmp.crawler.social.worker.WXMetaDataGenerator;
 
 public class Producer implements Callable<Boolean>
@@ -15,13 +14,17 @@ public class Producer implements Callable<Boolean>
     
     private String name;
     private Storage storage = null;
+    private String dateStr;
+    private String partitionSource;
     private WXMetaDataGenerator generator = new WXMetaDataGenerator();
     
     
-    public Producer(String name, Storage storage)
+    public Producer(String name, Storage storage, String dateStr, String partitionSource)
     {
         this.name = name;
         this.storage = storage;
+        this.dateStr = dateStr;
+        this.partitionSource = partitionSource;
     }
     
     
@@ -31,8 +34,7 @@ public class Producer implements Callable<Boolean>
         logger.info(name + "已启动.");
         try
         {
-            //List<Product> products = generator.generate(StringUtils.getTheDayBeforeYesterdayStr());
-            List<Product> products = generator.generate(StringUtils.getYesterdayStr("2016-08-01"));
+            List<Product> products = generator.generate(dateStr, partitionSource);
             for (Product product : products)
             {
                 storage.push(product);

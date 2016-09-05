@@ -19,10 +19,19 @@ public class ProducerConsumer
         
         Resource resource = new Resource();
         
+        if (args == null || args.length != 2)
+        {
+            System.out.println("<fatal error> Input param is incorrect.");
+            System.exit(-1);
+        }
+        
+        String dateStr = args[0];
+        String partitionSource = args[1];
         
         System.out.println("提交任务：生产者.");
-        Producer wxMetaParamProducer = new Producer("生产者", storage);
+        Producer wxMetaParamProducer = new Producer("生产者", storage, dateStr, partitionSource);
         Future<Boolean> producerFuture = service.submit(wxMetaParamProducer);
+        
         
         int threadNums = 100;
         List<Future<Boolean>> futures = new ArrayList<Future<Boolean>>();
@@ -33,6 +42,7 @@ public class ProducerConsumer
             Future<Boolean> consumerFuture = service.submit(wxMetaParamConsumer);
             futures.add(consumerFuture);
         }
+        
         
         if (producerFuture.get())
         {

@@ -207,7 +207,7 @@ public class Crawler4Tuniu extends BaseCrawler implements IPageCrawler
     }
     
     @Override
-    public void doCrawl() throws IOException
+    public void doCrawl(String[] args) throws IOException
     {
         // TODO 自动生成的方法存根
         
