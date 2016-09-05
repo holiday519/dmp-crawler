@@ -77,6 +77,8 @@ public class CrawlerManager {
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setSocketTimeout(20000);
 			config.setConnectionTimeout(20000);
+			//可恢复的爬取数据(如果爬虫意外终止或者想要实现增量爬取，可以通过设置这个属性来进行爬取数据)
+			config.setResumableCrawling(true);
 
 			PageFetcher pageFetcher = new PageFetcher(config);
 			RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
