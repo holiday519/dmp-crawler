@@ -12,6 +12,8 @@ import redis.clients.jedis.JedisPoolConfig;
  */
 public class RedisUtils {
 	private static JedisPool pool = null;
+	//0号数据库的变量
+	public static final String ARTICLE_ID_LIST = "article_id_list";
 
 	/**
 	 * 获取jedis连接池
@@ -25,7 +27,7 @@ public class RedisUtils {
 			// 最大空闲连接
 			config.setMaxIdle(5);
 			// 创建redis连接池
-			pool = new JedisPool(config, "192.168.3.176", 6379, 20000);
+			pool = new JedisPool(config, "192.168.3.178", 7000, 20000);
 		}
 		return pool;
 	}
@@ -35,6 +37,18 @@ public class RedisUtils {
 	 * */
 	public static Jedis getConn() {
 		return getPool().getResource();
+	}
+	
+	/**
+	 * 向指定的list变量里添加值
+	 * @param key	指定变量
+	 * @param value	具体值
+	 */
+	public static void jedisPushToList(String key, String value, int dbindex){
+		Jedis conn = getConn();
+		conn.select(dbindex);
+		conn.lpush(key, value);
+		conn.close();
 	}
 	
 	

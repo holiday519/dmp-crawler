@@ -1,0 +1,18 @@
+{
+	seeds : [
+		"http://www.tcminformatics.org/wiki/index.php/fangjibaike/search?kw=00480594002_000001"
+	],
+	loginConf : {
+		enable : false,
+		url : "",
+		usrkey : "u",
+		username : "",
+		pwdkey : "p",
+		password : ""
+	},
+	proxyConf : {
+		enable : false,
+		ips : [],
+		userAgents : []
+	}
+}

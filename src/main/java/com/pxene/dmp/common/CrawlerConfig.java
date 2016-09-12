@@ -176,7 +176,7 @@ public class CrawlerConfig {
 		
 		public Map<String, String> getRandomIp(){
 			Jedis jedis = RedisUtils.getConn();
-			jedis.select(3);
+			jedis.select(10);
 			Set<String> keys = jedis.keys("*");
 			int size = keys.size();
 			Random r = new Random();

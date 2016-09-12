@@ -15,8 +15,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.pxene.dmp.common.HBaseTools;
+import com.pxene.dmp.common.RedisUtils;
+import com.pxene.dmp.common.SolrUtil;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.crawler.BaseCrawler;
+import com.pxene.dmp.domain.Article;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
@@ -29,7 +32,7 @@ public class Crawler4Dxy extends BaseCrawler {
 	private Log logger = LogFactory.getLog(Crawler4Dxy.class);
 
 	// 入库所需参数
-	private static final String ROWKEY_PREFIX = "00480601_";
+	private static final String ROWKEY_PREFIX = "00480592001_";
 
 	private static final String TABLE_NAME_POST = "t_dxy_articleinfo";
 
@@ -120,7 +123,7 @@ public class Crawler4Dxy extends BaseCrawler {
 		//作者名称
 		String author1_name = getTextBySelector(article_doc, AUTHOR_NAME_SELECTOR, TEXT, null);
 		String author_name = StringUtils.regexpExtract(author1_name, "作者：([u4e00-\u9fa5]+)");
-		String rowkey = ROWKEY_PREFIX + article_id + "_" + article_time;
+		String rowkey = ROWKEY_PREFIX + article_id;
 		
 		logger.info("rowkey:"+rowkey);
 		logger.info("article_id:"+article_id);
@@ -130,6 +133,18 @@ public class Crawler4Dxy extends BaseCrawler {
 		logger.info("author_name:"+author_name);
 		logger.info("article_sections:"+article_sections);
 		
+		//将数据在solr中建立索引
+		Article article = new Article();
+		article.setId(rowkey);
+		article.setAuthor(author_name);
+		article.setContent(article_content);
+		article.setSections(article_sections);
+		article.setTime(StringUtils.stringinsert(article_time, "-", 8));
+		article.setTitle(article_title);
+		article.setUrl(url);
+		SolrUtil.addIndex(article);
+		
+		//将文章信息存储到hbase中
 		Map<String, byte[]> datas = new HashMap<String, byte[]>();
 		datas.put("article_title", Bytes.toBytes(article_title));
 		datas.put("article_content", Bytes.toBytes(article_content));

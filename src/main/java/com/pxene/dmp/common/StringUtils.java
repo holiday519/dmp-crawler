@@ -69,5 +69,16 @@ public class StringUtils {
 		}
 		return "";
 	}
+	
+	/**
+	 * 在原有的字符串上插入一个新的字符串
+	 * @param original
+	 * @param insert
+	 * @param index
+	 * @return
+	 */
+	public static String stringinsert(String original,String insert,int index){     
+	    return original.substring(0,index)+insert+original.substring(index,original.length());
+	} 
 
 }

@@ -17,8 +17,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.pxene.dmp.common.HBaseTools;
+import com.pxene.dmp.common.SolrUtil;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.crawler.BaseCrawler;
+import com.pxene.dmp.domain.Article;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
@@ -31,7 +33,7 @@ public class Crawler4Dxy_BBS extends BaseCrawler {
 	private Log logger = LogFactory.getLog(Crawler4Dxy_BBS.class);
 
 	// 入库所需参数
-	private static final String ROWKEY_PREFIX = "00480601_";
+	private static final String ROWKEY_PREFIX = "00480592002_";
 
 	private static final String TABLE_NAME_POST = "t_medicine_postinfo";
 
@@ -138,8 +140,16 @@ public class Crawler4Dxy_BBS extends BaseCrawler {
 		logger.info("bbs_name:"+bbs_name);
 		logger.info("post_id:"+post_id);
 		logger.info("post_title:"+post_title);
-		logger.info("post_time:"+post_time);
+		logger.info("post_time:"+StringUtils.stringinsert(post_time, "-", 8));
 		logger.info("post_content:"+post_content);
+		
+		//将数据在solr中建立索引
+		Article article = new Article();
+		article.setId(rowkey);
+		article.setTitle(post_title);
+		article.setContent(post_content);
+		article.setTime(StringUtils.stringinsert(post_time, "-", 8));
+		SolrUtil.addIndex(article);
 		
 		Map<String, byte[]> datas = new HashMap<String, byte[]>();
 		datas.put("bbs_id", Bytes.toBytes(bbs_id));

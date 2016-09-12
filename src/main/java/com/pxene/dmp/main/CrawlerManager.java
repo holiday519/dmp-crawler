@@ -2,7 +2,10 @@ package com.pxene.dmp.main;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -10,11 +13,13 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
+import com.pxene.dmp.common.ConfigUtil;
 import com.pxene.dmp.common.CookieList;
 import com.pxene.dmp.common.CrawlerConfig;
-import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.CrawlerConfig.LoginConf;
+import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.SeedParser;
+import com.pxene.dmp.crawler.ms.Crawler4ZhishikuFJ;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
@@ -34,7 +39,7 @@ public class CrawlerManager {
 		String crawlStorageFolder = "temp";
 		int numberOfCrawlers = 50;
 		// 默认的ua
-		String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
+		String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36";
 		// 命令行配置
 		Options options = new Options();
 		options.addOption("crawlPages", true, "input class name of crawler");
@@ -73,12 +78,11 @@ public class CrawlerManager {
 			 config.setMaxDepthOfCrawling(5);
 			// 最大网页数
 			 config.setMaxPagesToFetch(100000);
-
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setSocketTimeout(20000);
 			config.setConnectionTimeout(20000);
 			//可恢复的爬取数据(如果爬虫意外终止或者想要实现增量爬取，可以通过设置这个属性来进行爬取数据)
-			config.setResumableCrawling(true);
+//			config.setResumableCrawling(true);
 
 			PageFetcher pageFetcher = new PageFetcher(config);
 			RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
@@ -95,6 +99,15 @@ public class CrawlerManager {
 					controller.addSeed(s);
 				}
 			}
+			
+			/*ConfigUtil.loadConfigFileByPath("/fjbk.properties");
+			Map kv = ConfigUtil.getProperties();
+			Set keySet = kv.keySet();
+			Iterator iterator = keySet.iterator();
+			while(iterator.hasNext()){
+				String key = iterator.next().toString();
+				controller.addSeed(Crawler4ZhishikuFJ.URL_PRF+key);
+			}*/
 
 			controller.start(new WebCrawlerFactory<WebCrawler>() {
 				@Override
@@ -103,6 +116,8 @@ public class CrawlerManager {
 							packageName + "." + className).newInstance();
 				}
 			}, numberOfCrawlers);
+			
+			
 		} else if (line.hasOption("runnerClassName")) {
 			// e.g. -runnerClassName com.pxene.dmp.crawler.stock.Crawler410jqka
 			final String runnerClassName = line

@@ -21,8 +21,12 @@ public class CookieList {
 			String pwdkey = loginConf.getPwdkey();
 			String password = loginConf.getPassword();
 			try {
-				Map<String, String> cookie = Jsoup.connect(url).method(Method.POST)
-						.timeout(20000).data(usrkey, username, pwdkey, password).execute().cookies();
+				Map<String,String> cookies_map = new HashMap<String,String>();
+				cookies_map.put("JSESSIONID", "00857D119872963655D3558D4421B59B");
+				cookies_map.put("__utma", "213824646.835511136.1471850656.1471850656.1471850656.1");
+				cookies_map.put("__utmz", "213824646.1471850656.1.1.utmccn=(referral)|utmcsr=dbcenter.cintcm.com|utmcct=/channel-link.jsp|utmcmd=referral");
+				Map<String, String> cookie = Jsoup.connect(url).method(Method.POST).cookies(cookies_map)
+						.timeout(20000).execute().cookies();
 				cookies.put(className, cookie);
 			} catch (IOException e) {
 				e.printStackTrace();
