@@ -18,6 +18,7 @@ import com.pxene.dmp.common.CrawlerConfig.LoginConf;
 import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.SeedParser;
 import com.pxene.dmp.common.StringUtils;
+import com.pxene.dmp.crawler.ms.Crawler4ZhishikuFJ;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
@@ -80,7 +81,7 @@ public class CrawlerManager {
 			config.setSocketTimeout(20000);
 			config.setConnectionTimeout(20000);
 			//可恢复的爬取数据(如果爬虫意外终止或者想要实现增量爬取，可以通过设置这个属性来进行爬取数据)
-//			config.setResumableCrawling(true);
+			config.setResumableCrawling(true);
 
 			PageFetcher pageFetcher = new PageFetcher(config);
 			RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
@@ -98,15 +99,6 @@ public class CrawlerManager {
 				}
 			}
 			
-			/*ConfigUtil.loadConfigFileByPath("/fjbk.properties");
-			Map kv = ConfigUtil.getProperties();
-			Set keySet = kv.keySet();
-			Iterator iterator = keySet.iterator();
-			while(iterator.hasNext()){
-				String key = iterator.next().toString();
-				controller.addSeed(Crawler4ZhishikuFJ.URL_PRF+key);
-			}*/
-
 			controller.start(new WebCrawlerFactory<WebCrawler>() {
 				@Override
 				public WebCrawler newInstance() throws Exception {
