@@ -37,7 +37,6 @@ import org.jsoup.select.Elements;
 import com.pxene.dmp.crawler.social.currency.Product;
 import com.pxene.dmp.crawler.social.currency.Resource;
 import com.pxene.dmp.crawler.social.utils.HBaseTools;
-import com.pxene.dmp.crawler.social.utils.ProxyValidator;
 
 import redis.clients.jedis.Jedis;
 
@@ -316,11 +315,6 @@ public class WXEntityImporter
                 }
             }
             logger.debug("Redis proxy host " + proxyHost + ", proxy port " + proxyPort);
-            if (!ProxyValidator.checkProxy(proxyHost, proxyPort))
-            {
-                System.out.println("代理不好使，退出！");
-                return null;
-            }
             
             // 如果使用代理访问目标URL成功，则直接返回；否则不用代理再尝试一次.
             result = executeHTTPRequest(url, proxyHost, proxyPort);
