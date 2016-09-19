@@ -13,26 +13,26 @@ import java.io.UnsupportedEncodingException;
 
 
 /**
- * ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * 
  * @author John
  *
  */
 public class FileUtils {
 	
 	/**
-	 * Ğ´ÎÄ¼ş
+	 * å†™æ–‡ä»¶
 	 * @param filePath
 	 * @param content
 	 */
 	public static void writeFile(String filePath,String content){
-		//1.´´½¨Ô´
+		//1.åˆ›å»ºæº
 		File file = new File(filePath);
-		//2.Ñ¡ÔñÁ÷
+		//2.é€‰æ‹©æµ
 		OutputStream os = null;
 		BufferedWriter bw = null;
 		try {
 			os = new FileOutputStream(file,true);
-			//3.²Ù×÷
+			//3.æ“ä½œ
 			os.write((content+"\r\n").getBytes());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -42,11 +42,11 @@ public class FileUtils {
 	}
 	
 	/**
-	 * ¶ÁÈ¡ÎÄ¼ş
+	 * è¯»å–æ–‡ä»¶
 	 * @param filePath
 	 */
 	public static void readAndWriteFile(String inFilePath,String outFilePath){
-		//½âÂë
+		//è§£ç 
 		try {
 			File file = new File(outFilePath);
 			OutputStream os = null;
@@ -57,15 +57,15 @@ public class FileUtils {
 			while(null != (line = reader.readLine())){
 				int length = num.toString().length();
 				String content_pref = "";
-				if(length==1){//numÎª¸öÎ»Êı
+				if(length==1){//numä¸ºä¸ªä½æ•°
 					content_pref = "00000";
-				}else if(length==2){//numÎªÊ®Î»Êı
+				}else if(length==2){//numä¸ºåä½æ•°
 					content_pref = "0000";
-				}else if(length==3){//numÎª°ÙÎ»Êı
+				}else if(length==3){//numä¸ºç™¾ä½æ•°
 					content_pref = "000";
-				}else if(length==4){//numÎªÇ§Î»Êı
+				}else if(length==4){//numä¸ºåƒä½æ•°
 					content_pref = "00";
-				}else if(length==5){//numÎªÍòÎ»Êı
+				}else if(length==5){//numä¸ºä¸‡ä½æ•°
 					content_pref = "0";
 				}
 				String content = "00480594002_" + content_pref + num + "=" + line;
