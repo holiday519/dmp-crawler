@@ -110,7 +110,7 @@ public class CrawlerManager {
 		else if (line.hasOption("runner")) 
 		{
 			// without param, e.g. -runner com.pxene.dmp.crawler.stock.Crawler410jqka
-		    // with    param, e.g. -runner com.pxene.dmp.crawler.stock.Crawler410jqka[p1%3dv1%26p2%3dv2%26p3%3dmp3%3bmp4]
+		    // with    param, e.g. -runner com.pxene.dmp.crawler.stock.Crawler410jqka[20160801%252601]
 			final String runner = line.getOptionValue("runner");
 			System.out.println("runner: " + runner);
 			
