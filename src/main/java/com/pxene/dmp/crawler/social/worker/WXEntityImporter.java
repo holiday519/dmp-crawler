@@ -1,14 +1,32 @@
 package com.pxene.dmp.crawler.social.worker;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
+
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -19,9 +37,9 @@ import org.jsoup.select.Elements;
 import com.pxene.dmp.crawler.social.currency.Product;
 import com.pxene.dmp.crawler.social.currency.Resource;
 import com.pxene.dmp.crawler.social.utils.HBaseTools;
+import com.pxene.dmp.crawler.social.utils.ProxyValidator;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 
 public class WXEntityImporter
@@ -50,88 +68,90 @@ public class WXEntityImporter
     private static final String HBASE_COLUMN_FAMILY_BIZ = "info";
     private static final String HBASE_COLUMN_FAMILY_ART = "info";
     
-    /**
-     * 爬取失败的URL列表
-     */
-    private static List<String> failURLs = new ArrayList<String>();
-    
-    /**
-     * 需要跳过的biz, mid, idx, sn组合
-     */
-    private static List<Product> skipProducts = new ArrayList<Product>();
-    
-   
     private WXSolrIndexBuilder wxSolrIndexBuilder = new WXSolrIndexBuilder();
     
     
     public void doImport(Product product, Resource resource)
     {
-        JedisPool jedisPool = resource.getJedisPool();
-        Jedis jedis = jedisPool.getResource();
-        jedis.select(15);
-        
-        
         String biz = product.getBiz();
         String mid = product.getMid();
         String idx = product.getIdx();
         String sn = product.getSn();
-        String dateStr = product.getDateStr();
         String hbaseRowkey = biz + "_" + mid + "_" + idx + "_" + sn;
         logger.debug("==> RowKey: " + hbaseRowkey);
         
+        boolean isArtExist = false;
+        boolean isBizExist = false;
         
-        // 确保不会取到重复的biz, mid, idx, sn组合
-        if (!jedis.exists(hbaseRowkey))
+        // 初始化HBase连接
+        Connection connection = resource.getHBaseConnection();
+        if (connection == null || connection.isClosed())
         {
-            logger.debug("==> Redis中不存在RowKey：" + hbaseRowkey + "，执行写入操作...");
-            jedis.set(hbaseRowkey, "1");
+            System.err.println("HBase client connection is not ready.");
+            System.exit(-1);
         }
-        else
+        
+        // 文章表：确保不会取到重复的biz, mid, idx, sn组合
+        if (isRowKeyExist(connection, "t_prod_weixin_art", hbaseRowkey))
         {
-            System.out.println("^^^^准备回收Jedis，Active: " + jedisPool.getNumActive() + ", Idle: " + jedisPool.getNumIdle() + ".");
-            skipProducts.add(product);
-            jedis.close();
+            logger.debug("==> 目标Rowkey" + hbaseRowkey + "，已在HBase表t_prod_weixin_art中存在，不执行写入.");
+            isArtExist = true;
+        }
+        
+        // 公众号表：确保不会取到重复的biz
+        if (isRowKeyExist(connection, "t_prod_weixin_biz", biz))
+        {
+            logger.debug("==> 目标Rowkey" + hbaseRowkey + "，已在HBase表t_prod_weixin_biz中存在，不执行写入.");
+            isBizExist = true;
+        }
+        
+        // 如果待爬取的内容同时在文章表和公众号都已存在，则无必要再去请求和解析
+        if (isArtExist && isBizExist)
+        {
             return;
         }
         
-        
         // 使用模板构造需要爬取的公众号文章URL
         String url = MessageFormat.format(ARITICLE_URL_TEMPLATE, biz, mid, idx, sn);
-        logger.debug("==> URL: " + url);
-        
+        logger.info("==> Target URL: " + url);
         
         // 解析爬取的HTML页面，获得公众号信息+文章信息
         OfficialAccount tmpOfficialAccount = doReatableParse(url);
         tmpOfficialAccount.setMetaData(product);
+        
         if (tmpOfficialAccount.getWeixinCode() != null && !"".equals(tmpOfficialAccount.getWeixinCode()))
         {
-            // 插入到HBase公众号表(t_weixin_biz_prod)
-            try
+            if (!isArtExist)
             {
-                insertIntoHBase(HBASE_TABLE_NAME_BIZ, prepareBizData(biz, tmpOfficialAccount));
-            }
-            catch (Exception exception)
-            {
-                redisHset(jedis, "fail_job_weixin_biz", hbaseRowkey, dateStr);
-                exception.printStackTrace();
+                // 插入到HBase文章表(t_weixin_art_prod)
+                try
+                {
+                    insertIntoHBase(HBASE_TABLE_NAME_ART, prepareArtData(hbaseRowkey, tmpOfficialAccount));
+                }
+                catch (Exception exception)
+                {
+                    logger.error("<== TONY ==> 插入t_weixin_art_prod失败，URL：" + url);
+                    exception.printStackTrace();
+                }
             }
             
-            // 插入到HBase文章表(t_weixin_art_prod)
-            try
+            if (!isBizExist)
             {
-                insertIntoHBase(HBASE_TABLE_NAME_ART, prepareArtData(hbaseRowkey, tmpOfficialAccount));
-            }
-            catch (Exception exception)
-            {
-                redisHset(jedis, "fail_job_weixin_art", hbaseRowkey, dateStr);
-                exception.printStackTrace();
+                // 插入到HBase公众号表(t_weixin_biz_prod)
+                try
+                {
+                    insertIntoHBase(HBASE_TABLE_NAME_BIZ, prepareBizData(biz, tmpOfficialAccount));
+                }
+                catch (Exception exception)
+                {
+                    logger.error("<== TONY ==> 插入t_weixin_biz_prod失败，URL：" + url);
+                    exception.printStackTrace();
+                }
             }
         }
         else
         {
-            System.out.println("####准备回收Jedis，Active: " + jedisPool.getNumActive() + ", Idle: " + jedisPool.getNumIdle() + ".");
-            failURLs.add(url);
-            jedis.close();
+            logger.error("<== TONY ==> 微信号不合法，URL：" + url + " <== TONY ==>  tmpOfficialAccount=" + tmpOfficialAccount);
             return;
         }
         
@@ -142,17 +162,32 @@ public class WXEntityImporter
         insertIntoSolr(tmpOfficialAccount, hbaseRowkey, dateStr, jedis);
         */
         
-        
-        if (jedis != null) 
-        {
-            System.out.println("====准备回收Jedis，Active: " + jedisPool.getNumActive() + ", Idle: " + jedisPool.getNumIdle());
-            jedis.close();
-        }
     }
     
-    
-    
-
+    /**
+     * 判断Rowkey是否存于在HBase中.
+     * @param connection
+     * @param tableName
+     * @param hbaseRowkey
+     * @return
+     */
+    private boolean isRowKeyExist(Connection connection, String tableName, String hbaseRowkey)
+    {
+        try
+        {
+            HTable table = (HTable) connection.getTable(TableName.valueOf(tableName));
+            Get get = new Get(Bytes.toBytes(hbaseRowkey));
+            if (table.exists(get))
+            {
+                return true;
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     public void redisHset(Jedis jedis, String key, String field, String value)
     {
@@ -192,6 +227,7 @@ public class WXEntityImporter
     /**
      * 在指定的重试次数内尝试解析指定的公众号文章内容.
      * @param url               公众号文章URL
+     * @param jedisPool         Redis连接池，取出Redis中保存的代理IP
      * @return                  封装有标题、时间、内容等信息的对象
      * @throws IOException
      */
@@ -204,12 +240,20 @@ public class WXEntityImporter
         String weixinCode = "";         // 公众号号码
         String weixinDescription = "";  // 公众号描述
         
+        Jedis jedis = new Jedis("192.168.3.178", 7000, 10000);
+        
         int redo = 0;
         while (redo < REPEAT_COUNT)
         {
             try
             {
-                Document doc = Jsoup.connect(url).get();
+                String html = getHtmlStr(url, jedis);
+                if (html == null || "".equals(html))
+                {
+                    return null;
+                }
+                
+                Document doc = Jsoup.parse(html);
                 
                 articleTitle = getDOMTextBySelector(doc, "#activity-name");
                 articleDate = getDOMTextBySelector(doc, "#post-date");
@@ -237,14 +281,145 @@ public class WXEntityImporter
         
         if (redo >= REPEAT_COUNT)
         {
-            failURLs.add(url);
-            logger.debug("已进行" + REPEAT_COUNT + "次重试，均告失败，放弃重试！");
+            logger.error("已进行" + REPEAT_COUNT + "次重试，均告失败，放弃重试，失败URL：" + url);
         }
+        
+        jedis.close();
         
         return new OfficialAccount(articleTitle, articleDate, articleContent, weixinName, weixinCode, weixinDescription);
     }
     
     
+    private static String getHtmlStr(String url, Jedis jedis)
+    {
+        String result = null;
+        
+        String proxyHost = null;
+        int proxyPort = 0;
+        
+        try
+        {
+            jedis.select(10);
+            String randomKey = jedis.randomKey();
+            logger.debug("Redis randomKey: " + randomKey);
+            
+            for (String hkey : jedis.hkeys(randomKey))
+            {
+                String tmpVal = jedis.hget(randomKey, hkey);
+                if ("host".equals(hkey))
+                {
+                    proxyHost= tmpVal;
+                }
+                else if ("port".equals(hkey))
+                {
+                    proxyPort = Integer.valueOf(tmpVal);
+                }
+            }
+            logger.debug("Redis proxy host " + proxyHost + ", proxy port " + proxyPort);
+            if (!ProxyValidator.checkProxy(proxyHost, proxyPort))
+            {
+                System.out.println("代理不好使，退出！");
+                return null;
+            }
+            
+            // 如果使用代理访问目标URL成功，则直接返回；否则不用代理再尝试一次.
+            result = executeHTTPRequest(url, proxyHost, proxyPort);
+            if (result == null || "".equals(result))
+            {
+                logger.debug("Visit target url: '" + url + "' without proxy.");
+                result = executeHTTPRequest(url);
+            }
+        }
+        catch (Exception exception)
+        {
+            logger.info("Visit target url: '" + url + "' without proxy.");
+            result = executeHTTPRequest(url);
+        }
+        
+        return result;
+    }
+
+
+    /**
+     * 向指定的URL发送请求，并返回HTML的字符串表示.
+     * @param url   需要访问的URL
+     * @return
+     */
+    private static String executeHTTPRequest(String url)
+    {
+        return executeHTTPRequest(url, null, 0);
+    }
+    
+    /**
+     * 通过代理服务器向指定的URL发送请求，并返回HTML的字符串表示.
+     * @param url       需要访问的URL
+     * @param proxyHost 代理服务器IP
+     * @param proxyPort 代理服务器端口
+     * @return
+     */
+    private static String executeHTTPRequest(String url, String proxyHost, int proxyPort)
+    {
+        String html = "";
+        
+        //HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();  
+        //CloseableHttpClient closeableHttpClient = httpClientBuilder.build();
+        CloseableHttpClient closeableHttpClient = createSSLClientDefault();
+        
+        HttpGet httpGet = new HttpGet(url);
+        if (proxyHost != null && !"".equals(proxyHost) && proxyPort != 0)
+        {
+            HttpHost proxy = new HttpHost(proxyHost, proxyPort); 
+            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+            httpGet.setConfig(config);
+        }
+        
+        CloseableHttpResponse response;
+        try
+        {
+            response = closeableHttpClient.execute(httpGet);
+            html = EntityUtils.toString(response.getEntity(), "UTF-8");
+            response.close();
+            closeableHttpClient.close();
+        }
+        catch (Exception e)
+        {
+            //e.printStackTrace();
+        }
+        
+        return html;
+    }
+    
+    public static CloseableHttpClient createSSLClientDefault()
+    {
+        try
+        {
+            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy()
+            {
+                // 信任所有
+                public boolean isTrusted(X509Certificate[] chain, String authType)
+                {
+                    return true;
+                }
+            }).build();
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
+            return HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        }
+        catch (KeyManagementException e)
+        {
+            //e.printStackTrace();
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            //e.printStackTrace();
+        }
+        catch (KeyStoreException e)
+        {
+            //e.printStackTrace();
+        }
+        return HttpClients.createDefault();
+    }
+
+
     private Map<String, Map<String, Map<String, byte[]>>> insertData(Map<String, Map<String, Map<String, byte[]>>> rowDatas, String rowKey, String familyName, String columnName, byte[] columnVal)
     {
         if (rowDatas.containsKey(rowKey))
@@ -366,7 +541,18 @@ public class WXEntityImporter
         String url = MessageFormat.format(ARITICLE_URL_TEMPLATE, biz, mid, idx, sn);
         logger.info("==> URL: " + url);
         
-        doReatableParse(url);
+        url = "https://mp.weixin.qq.com/s?__biz=NzQ3MzYxNDAx&mid=2652344551&idx=3&sn=04ed435967600e78924e20cd29cc02fa&scene=0&key=b28b03434249256b807640f6a1953a6993620b3fd44aa986d2c83e98723d286b25205f39de863ebdc1bd9354ba637fb9&ascene=7&uin=NzA1NzQ3OTIx&devicetype=android-22&version=26030f35&nettype=WIFI&pass_ticket=CFFJg1TRuxHmFioCRktgVIGpeFnFDICSKyxGfyI4aXzP4mjRMN2dw6xARkLJ2W0z";
+        System.out.println("zy said : " +url);
+        OfficialAccount tmpOfficialAccount = doReatableParse(url);
+        if (tmpOfficialAccount.getWeixinCode() != null && !"".equals(tmpOfficialAccount.getWeixinCode()))
+        {
+            System.out.println(tmpOfficialAccount);
+        }
+        else
+        {
+            System.out.println("####################");
+        }
+        
     }
 
 }

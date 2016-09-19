@@ -39,12 +39,25 @@ public class Producer implements Callable<Boolean>
             {
                 storage.push(product);
             }
-            return Boolean.TRUE;
         }
         catch (Exception exception)
         {
             exception.printStackTrace();
             return Boolean.FALSE;
         }
+        finally
+        {
+            // 放入“毒药丸”
+            try
+            {
+                storage.push(new Product(-1));
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+                return Boolean.FALSE;
+            }
+        }
+        return Boolean.TRUE;
     }
 }

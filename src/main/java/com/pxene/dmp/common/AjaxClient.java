@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -24,11 +25,17 @@ public class AjaxClient {
 	public static class Builder {
 		private String url;
 		private Map<String, String> headers;
+		private String proxy;
 		
 		public Builder(String url, Map<String, String> headers) {
 			this.url = url;
 			this.headers = headers;
 		}
+		public Builder(String url, Map<String, String> headers, String proxy) {
+            this.url = url;
+            this.headers = headers;
+            this.proxy = proxy;
+        }
 		public Builder setUrl(String url) {
 			this.url = url;
 			return this;
@@ -36,6 +43,10 @@ public class AjaxClient {
 		public Builder setHeaders(Map<String, String> headers) {
 			this.headers = headers;
 			return this;
+		}
+		public Builder setProxy(String proxy) {
+		    this.proxy = proxy;
+		    return this;
 		}
 		
 		public AjaxClient build() {
@@ -48,6 +59,13 @@ public class AjaxClient {
 		Map<String, String> headers = (builder.headers == null) ? new HashMap<String, String>() : builder.headers;
 		request = new HttpGet(url);
 		request.setConfig(RequestConfig.custom().setSocketTimeout(20000).setConnectTimeout(20000).build());
+		if (builder.proxy != null && builder.proxy.contains(":"))
+		{
+		    String[] tmpArray = builder.proxy.split(":");
+		    String host = tmpArray[0];
+		    int port = Integer.parseInt(tmpArray[1]);
+            request.setConfig(RequestConfig.custom().setProxy(new HttpHost(host, port)).build());
+		}
 		for (Map.Entry<String, String> entry : headers.entrySet()) {
 			request.setHeader(entry.getKey(), entry.getValue());
 		}
@@ -99,18 +117,22 @@ public class AjaxClient {
 	
     private String getJsonArrayResult(HttpResponse resp)
     {
-        HttpEntity entity = resp.getEntity();
-        String json = "";
-        
-        try
+        if (resp != null)
         {
-            json = EntityUtils.toString(entity, "GBK");
+            HttpEntity entity = resp.getEntity();
+            String json = "";
+            
+            try
+            {
+                json = EntityUtils.toString(entity, "GBK");
+            }
+            catch (Exception exception)
+            {
+                exception.printStackTrace();
+                return "";
+            }
+            return json;
         }
-        catch (Exception exception)
-        {
-            exception.printStackTrace();
-            return "";
-        }
-        return json;
+        return null;
     }
 }
