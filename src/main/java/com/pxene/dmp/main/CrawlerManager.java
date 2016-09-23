@@ -109,8 +109,9 @@ public class CrawlerManager {
 		}
 		else if (line.hasOption("runner")) 
 		{
-			// without param, e.g. -runner com.pxene.dmp.crawler.stock.Crawler410jqka
-		    // with    param, e.g. -runner com.pxene.dmp.crawler.stock.Crawler410jqka[20160801%252601]
+			// without param, e.g. -runner com.pxene.dmp.crawler.social.application.Application
+		    // with    param, e.g. -runner com.pxene.dmp.crawler.social.application.Application[20160801%252601]      # notice: the param between [] need be urlencoded.
+		    // with    param, e.g. -runner com.pxene.dmp.crawler.social.application.Application[mode%3djms%26clientId%3dtony%26subName%3drandom1%26topicName%3ddemoTopic]      # notice: the param between [] need be urlencoded.
 			final String runner = line.getOptionValue("runner");
 			System.out.println("runner: " + runner);
 			

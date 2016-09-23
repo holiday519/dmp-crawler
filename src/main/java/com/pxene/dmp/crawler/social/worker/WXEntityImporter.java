@@ -6,15 +6,18 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.http.HttpHost;
@@ -29,6 +32,7 @@ import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.joda.time.Interval;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -66,6 +70,12 @@ public class WXEntityImporter
      */
     private static final String HBASE_COLUMN_FAMILY_BIZ = "info";
     private static final String HBASE_COLUMN_FAMILY_ART = "info";
+
+    /**
+     * HBase行有效期，即，超过此值后的旧值需要进行更新
+     */
+    private static final int DEFAULT_EXPIRE_MONTH = 3;
+    
     
     private WXSolrIndexBuilder wxSolrIndexBuilder = new WXSolrIndexBuilder();
     
@@ -79,8 +89,8 @@ public class WXEntityImporter
         String hbaseRowkey = biz + "_" + mid + "_" + idx + "_" + sn;
         logger.debug("==> RowKey: " + hbaseRowkey);
         
-        boolean isArtExist = false;
-        boolean isBizExist = false;
+        boolean needCrawlerArt = false;
+        boolean needCrawlerBiz = false;
         
         // 初始化HBase连接
         Connection connection = resource.getHBaseConnection();
@@ -90,22 +100,30 @@ public class WXEntityImporter
             System.exit(-1);
         }
         
-        // 文章表：确保不会取到重复的biz, mid, idx, sn组合
-        if (isRowKeyExist(connection, "t_prod_weixin_art", hbaseRowkey))
+        // 文章表：
+        //      - 确保不会取到重复的biz, mid, idx, sn组合
+        if (!isRowKeyExist(connection, "t_prod_weixin_art", hbaseRowkey))
         {
-            logger.debug("==> 目标Rowkey" + hbaseRowkey + "，已在HBase表t_prod_weixin_art中存在，不执行写入.");
-            isArtExist = true;
+            needCrawlerArt = true;
         }
         
-        // 公众号表：确保不会取到重复的biz
-        if (isRowKeyExist(connection, "t_prod_weixin_biz", biz))
+        // 公众号表：
+        //      - 确保不会取到重复的biz
+        //      - 确保biz作为rowKey未过期
+        if (!isRowKeyExist(connection, "t_prod_weixin_biz", biz))
         {
-            logger.debug("==> 目标Rowkey" + hbaseRowkey + "，已在HBase表t_prod_weixin_biz中存在，不执行写入.");
-            isBizExist = true;
+            needCrawlerBiz = true;
+        }
+        else
+        {
+            if (!isRowExpired(connection, "t_prod_weixin_biz", biz))
+            {
+                needCrawlerBiz = true;
+            }
         }
         
-        // 如果待爬取的内容同时在文章表和公众号都已存在，则无必要再去请求和解析
-        if (isArtExist && isBizExist)
+        // 如果待爬取的内容同时在文章表和公众号都已存在且未过期，则无必要再去请求和解析
+        if (!needCrawlerArt && !needCrawlerBiz)
         {
             return;
         }
@@ -120,7 +138,7 @@ public class WXEntityImporter
         
         if (tmpOfficialAccount.getWeixinCode() != null && !"".equals(tmpOfficialAccount.getWeixinCode()))
         {
-            if (!isArtExist)
+            if (needCrawlerArt)
             {
                 // 插入到HBase文章表(t_weixin_art_prod)
                 try
@@ -134,7 +152,7 @@ public class WXEntityImporter
                 }
             }
             
-            if (!isBizExist)
+            if (needCrawlerBiz)
             {
                 // 插入到HBase公众号表(t_weixin_biz_prod)
                 try
@@ -179,6 +197,44 @@ public class WXEntityImporter
             if (table.exists(get))
             {
                 return true;
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    
+    /**
+     * 判断指定Rowkey的行是否已经过旧，需要更新。
+     * @param connection
+     * @param tableName
+     * @param hbaseRowkey
+     * @return
+     */
+    private boolean isRowExpired(Connection connection, String tableName, String hbaseRowkey)
+    {
+        try
+        {
+            HTable table = (HTable) connection.getTable(TableName.valueOf(tableName));
+            Get get = new Get(Bytes.toBytes(hbaseRowkey));
+            get.getTimeRange();
+            
+            Result result = table.get(get);
+            Cell[] rawCells = result.rawCells();
+            if (rawCells != null && rawCells.length > 0)
+            {
+                long rawTime = rawCells[0].getTimestamp();
+                long nowTime = new Date().getTime();
+                
+                Interval interval = new Interval(rawTime, nowTime);
+                int months = interval.toPeriod().getMonths();
+                if (months >= DEFAULT_EXPIRE_MONTH)
+                {
+                    return true;
+                }
             }
         }
         catch (IOException e)
@@ -363,21 +419,38 @@ public class WXEntityImporter
         if (proxyHost != null && !"".equals(proxyHost) && proxyPort != 0)
         {
             HttpHost proxy = new HttpHost(proxyHost, proxyPort); 
-            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+            RequestConfig config = RequestConfig.custom().setProxy(proxy).setSocketTimeout(2000).setConnectTimeout(2000).build();
             httpGet.setConfig(config);
         }
         
-        CloseableHttpResponse response;
+        CloseableHttpResponse response = null;
         try
         {
             response = closeableHttpClient.execute(httpGet);
             html = EntityUtils.toString(response.getEntity(), "UTF-8");
-            response.close();
-            closeableHttpClient.close();
+            
         }
         catch (Exception e)
         {
             //e.printStackTrace();
+        }
+        finally 
+        {
+            try
+            {
+                if (response != null)
+                {
+                    response.close();
+                }
+                if (closeableHttpClient != null)
+                {
+                    closeableHttpClient.close();
+                }
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
         
         return html;
@@ -410,6 +483,7 @@ public class WXEntityImporter
         {
             //e.printStackTrace();
         }
+        
         return HttpClients.createDefault();
     }
 

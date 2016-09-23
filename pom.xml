@@ -15,6 +15,15 @@
 		<hbase.version>1.1.4</hbase.version>
 		<hadoop.version>2.6.0</hadoop.version>
 	</properties>
+    
+    <repositories>
+        <repository>
+          <id>repository.jboss.org-public</id>
+          <name>JBoss.org Maven repository</name>
+          <url>https://repository.jboss.org/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+    
 	<dependencies>
 		<dependency>
 			<groupId>jdk.tools</groupId>
@@ -130,6 +139,16 @@
                 <artifactId>nekohtml</artifactId>
             </exclusion>
         </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>javax.jms</groupId>
+        <artifactId>jms</artifactId>
+        <version>1.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-all</artifactId>
+        <version>5.14.0</version>
     </dependency>
 	</dependencies>
 	<build>

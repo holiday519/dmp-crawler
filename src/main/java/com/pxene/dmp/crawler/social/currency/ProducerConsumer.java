@@ -18,7 +18,7 @@ public class ProducerConsumer
     
     public static void main(String[] args) throws IOException,  ExecutionException
     {
-        ExecutorService service = Executors.newFixedThreadPool(500);
+        ExecutorService service = Executors.newFixedThreadPool(50);
         
         CountDownLatch countDownLatch = new CountDownLatch(THREAD_NUM);
         
