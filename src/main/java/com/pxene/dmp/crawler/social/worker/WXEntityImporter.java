@@ -75,6 +75,15 @@ public class WXEntityImporter
      * HBase行有效期，即，超过此值后的旧值需要进行更新
      */
     private static final int DEFAULT_EXPIRE_MONTH = 3;
+
+    /**
+     * Redis配置
+     */
+    private static final String REDIS_HOST = "115.182.33.163";
+    private static final int REDIS_PORT = 7000;
+    private static final int REDIS_TIMEOUT = 10000;
+    private static final int REDIS_DB = 10;
+    private static final String REDIS_SET_KEY = "weixin";
     
     
     private WXSolrIndexBuilder wxSolrIndexBuilder = new WXSolrIndexBuilder();
@@ -172,6 +181,20 @@ public class WXEntityImporter
             return;
         }
         
+        // -- 关闭HBase连接 --  \\
+        if (connection != null)
+        {
+            try
+            {
+                logger.debug("Closing the HBase connection.");
+                connection.close();
+            }
+            catch (IOException e)
+            {
+                logger.fatal("HBase connection faild, see detail: " + e);
+                System.exit(-1);
+            }
+        }
         
         // 在Solr中构建索引
         /*
@@ -295,7 +318,7 @@ public class WXEntityImporter
         String weixinCode = "";         // 公众号号码
         String weixinDescription = "";  // 公众号描述
         
-        Jedis jedis = new Jedis("192.168.3.178", 7000, 10000);
+        Jedis jedis = new Jedis(REDIS_HOST, REDIS_PORT, REDIS_TIMEOUT);
         
         int redo = 0;
         while (redo < REPEAT_COUNT)
@@ -354,23 +377,22 @@ public class WXEntityImporter
         
         try
         {
-            jedis.select(10);
-            String randomKey = jedis.randomKey();
-            logger.debug("Redis randomKey: " + randomKey);
+            jedis.select(REDIS_DB);
+            String randomProxy = jedis.srandmember(REDIS_SET_KEY);
+            logger.debug("Redis proxy host " + randomProxy);
             
-            for (String hkey : jedis.hkeys(randomKey))
+            if (randomProxy != null && "".equals(randomProxy) && randomProxy.contains(":"))
             {
-                String tmpVal = jedis.hget(randomKey, hkey);
-                if ("host".equals(hkey))
+                String[] tmp = randomProxy.split(":");
+                if (tmp.length == 1)
                 {
-                    proxyHost= tmpVal;
+                    proxyHost = tmp[0];
                 }
-                else if ("port".equals(hkey))
+                if (tmp.length == 2)
                 {
-                    proxyPort = Integer.valueOf(tmpVal);
+                    proxyPort = Integer.valueOf(tmp[1]);
                 }
             }
-            logger.debug("Redis proxy host " + proxyHost + ", proxy port " + proxyPort);
             
             // 如果使用代理访问目标URL成功，则直接返回；否则不用代理再尝试一次.
             result = executeHTTPRequest(url, proxyHost, proxyPort);
@@ -441,6 +463,10 @@ public class WXEntityImporter
                 if (response != null)
                 {
                     response.close();
+                }
+                if (httpGet != null)
+                {
+                    httpGet.releaseConnection();
                 }
                 if (closeableHttpClient != null)
                 {

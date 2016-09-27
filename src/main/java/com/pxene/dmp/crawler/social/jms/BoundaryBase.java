@@ -13,7 +13,7 @@ public abstract class BoundaryBase
 {
     private static final String USERNAME = ActiveMQConnection.DEFAULT_USER;
     private static final String PASSWORD = ActiveMQConnection.DEFAULT_PASSWORD;
-    private static final String BROKEURL = "tcp://192.168.3.176:61616"; // ActiveMQConnection.DEFAULT_BROKER_URL;
+    private static final String BROKEURL = "tcp://115.182.33.161:61616"; // ActiveMQConnection.DEFAULT_BROKER_URL;
     
     
     protected Connection getConnection() throws JMSException

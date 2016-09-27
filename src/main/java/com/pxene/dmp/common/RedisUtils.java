@@ -27,7 +27,7 @@ public class RedisUtils {
 			// 最大空闲连接
 			config.setMaxIdle(5);
 			// 创建redis连接池
-			pool = new JedisPool(config, "192.168.3.178", 7000, 20000);
+			pool = new JedisPool(config, "115.182.33.163", 7000, 20000);
 		}
 		return pool;
 	}

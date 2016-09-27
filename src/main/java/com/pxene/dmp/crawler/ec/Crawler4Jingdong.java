@@ -74,7 +74,7 @@ public class Crawler4Jingdong extends SimpleWebCrawler
     /**
      * Redis配置
      */
-    private static final String REDIS_HOST = "192.168.3.178";
+    private static final String REDIS_HOST = "115.182.33.163";
     private static final int REDIS_PORT = 7000;
     private static final int REDIS_DB = 10;
     private static final int REDIS_TIMEOUT = 10000;

@@ -23,7 +23,7 @@ import com.pxene.dmp.domain.Article;
  */
 public class SolrUtil {
 	static final Logger logger = LoggerFactory.getLogger(SolrUtil.class);
-	private static final String SOLR_URL = "http://192.168.3.176:8983/solr/solr_test2"; // 服务器地址
+	private static final String SOLR_URL = "http://115.182.33.161:8983/solr/solr_test2"; // 服务器地址
 	private static HttpSolrServer server = null;
 	static{
 		try {

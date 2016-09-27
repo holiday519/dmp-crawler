@@ -27,7 +27,7 @@ public class WXMetaDataGenerator
     /**
      * Hive 连接URL
      */
-    private static final String HIVE_URL = "jdbc:hive2://192.168.3.171:10000/basetables";
+    private static final String HIVE_URL = "jdbc:hive2://115.182.33.156:10000/basetables";
     
     /**
      * Hive 用户名
