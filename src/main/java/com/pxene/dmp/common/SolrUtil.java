@@ -1,7 +1,12 @@
 package com.pxene.dmp.common;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,11 +15,13 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pxene.dmp.domain.Article;
+import com.pxene.dmp.crawler.ms.domain.Article;
+import com.pxene.dmp.domain.Weixin;
 
 
 /**
@@ -23,7 +30,7 @@ import com.pxene.dmp.domain.Article;
  */
 public class SolrUtil {
 	static final Logger logger = LoggerFactory.getLogger(SolrUtil.class);
-	private static final String SOLR_URL = "http://115.182.33.161:8983/solr/solr_test2"; // 服务器地址
+	private static final String SOLR_URL = "http://115.182.33.161:8983/solr/c_cec_article"; // 服务器地址
 	private static HttpSolrServer server = null;
 	static{
 		try {
@@ -55,15 +62,24 @@ public class SolrUtil {
 	 * 建立索引
 	 * @throws Exception
 	 */
-	public static void deleteIndex() {
+	public static void addIndex(Weixin weixin) {
 		try {
-			List<String> ids = new ArrayList<String>();
-			ids.add("00030006_0000001");
-			ids.add("00030006_0000003");
-			ids.add("00030006_0000005");
-			ids.add("00030006_0000002");
-			ids.add("00030006_0000004");
-			server.deleteById(ids);
+			server.addBean(weixin);
+			server.commit(true, true, true);//软提交
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (SolrServerException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 删除索引
+	 * @throws Exception
+	 */
+	public static void deleteIndex(String id) {
+		try {
+			server.deleteById(id);
 			server.commit();
 		} catch (SolrServerException | IOException e) {
 			e.printStackTrace();
@@ -71,16 +87,16 @@ public class SolrUtil {
 	}
 	
 	/**
-	 * 建立索引
+	 * 删除索引
 	 * @throws Exception
 	 */
 	public static void deleteAll() {
-		try {
+		/*try {
 			server.deleteByQuery("*:*");  
             server.commit();
 		} catch (SolrServerException | IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 	}
 	
 	/**
@@ -131,8 +147,61 @@ public class SolrUtil {
 		return hashMap;
 	}
 	
+	
+	/**
+	 * 查询
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static void queryByParams() throws Exception {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("D:\\workspace_pxene\\dmp-crawler\\src\\main\\resources\\test.text"),"UTF-8"));
+		String line = null;
+		while(null != (line = reader.readLine())){
+			//封装查询的参数
+			SolrQuery params = new SolrQuery();
+			params.setQuery("title:(\""+line+"\")");
+			params.setStart(0);
+			params.setRows(300);
+			QueryResponse response = server.query(params);
+			SolrDocumentList results = response.getResults();
+			long numFound = results.getNumFound();
+			System.out.println("总条数："+numFound);
+			
+			int count = 0;
+			if(results.size() > 0){
+				ArrayList<String> ids = new ArrayList<String>();
+				for (SolrDocument solrDocument : results) {
+					Collection<String> fieldNames = solrDocument.getFieldNames();
+					for (String field : fieldNames) {
+						if(field.equals("title") && solrDocument.get(field).equals(line)){
+							count++;
+							String id = solrDocument.get("id").toString();
+							if(id.matches("^[0-9,_]{18}$")){
+								ids.add(id);
+							}
+						}
+					}
+				}
+				System.out.println("count:"+count);
+				System.out.println("list.size:"+ids.size());
+				//1.删除多于的数据
+				for(int i=1;i<ids.size();i++){
+					String id = ids.get(i);
+					System.out.println("第"+i+"："+id);
+					deleteIndex(id);
+				}
+				System.out.println("11list.size:"+ids.size());
+			}
+		}
+	}
+	
+	
 	public static void main(String[] args) {
-		SolrUtil.deleteAll();
+		try {
+			SolrUtil.queryByParams();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	

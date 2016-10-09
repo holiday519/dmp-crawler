@@ -9,6 +9,12 @@
 
 	<name>dmp-crawler</name>
 	<url>http://maven.apache.org</url>
+	<repositories>
+        <repository>
+            <id>mvn-repo</id>
+            <url>http://maven.ansj.org/</url>
+        </repository>
+    </repositories>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -141,6 +147,11 @@
         </exclusions>
     </dependency>
     <dependency>
+        <groupId>org.ansj</groupId>
+        <artifactId>ansj_seg</artifactId>
+        <version>1.4</version>
+    </dependency>
+    <dependency>
         <groupId>javax.jms</groupId>
         <artifactId>jms</artifactId>
         <version>1.1</version>
@@ -188,7 +199,7 @@
                         <manifest>  
                             <addClasspath>true</addClasspath>  
                             <classpathPrefix>lib/</classpathPrefix>  
-                            <mainClass>com.pxene.dmp.main.CrawlerManager</mainClass>  
+                            <mainClass>com.pxene.dmp.common.HBaseTools</mainClass>  
                         </manifest>  
                     </archive>
                     <descriptors>  

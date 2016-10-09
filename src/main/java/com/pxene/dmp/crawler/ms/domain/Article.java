@@ -1,4 +1,4 @@
-package com.pxene.dmp.domain;
+package com.pxene.dmp.crawler.ms.domain;
 
 import org.apache.solr.client.solrj.beans.Field;
 
@@ -6,7 +6,8 @@ import org.apache.solr.client.solrj.beans.Field;
 /**
  * 文章实体类
  * @author Administrator
- *
+ * @Field
+ *	private String time;
  */
 public class Article {
 	
@@ -14,7 +15,7 @@ public class Article {
 	private String id;
 	@Field
 	private String title;
-	@Field
+	
 	private String time;
 	@Field
 	private String content;

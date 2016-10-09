@@ -20,7 +20,7 @@ import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.SolrUtil;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.crawler.BaseCrawler;
-import com.pxene.dmp.domain.Article;
+import com.pxene.dmp.crawler.ms.domain.Article;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
@@ -35,7 +35,7 @@ public class Crawler4Dxy_BBS extends BaseCrawler {
 	// 入库所需参数
 	private static final String ROWKEY_PREFIX = "00480592002_";
 
-	private static final String TABLE_NAME_POST = "t_medicine_postinfo";
+	private static final String TABLE_NAME_POST = "c_cec_bbs";
 
 	private static final String FAMILY_NAME_POST = "post_info";
 

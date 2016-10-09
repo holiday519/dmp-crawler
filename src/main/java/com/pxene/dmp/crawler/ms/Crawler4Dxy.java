@@ -19,7 +19,7 @@ import com.pxene.dmp.common.RedisUtils;
 import com.pxene.dmp.common.SolrUtil;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.crawler.BaseCrawler;
-import com.pxene.dmp.domain.Article;
+import com.pxene.dmp.crawler.ms.domain.Article;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
@@ -34,7 +34,7 @@ public class Crawler4Dxy extends BaseCrawler {
 	// 入库所需参数
 	private static final String ROWKEY_PREFIX = "00480592001_";
 
-	private static final String TABLE_NAME_POST = "t_dxy_articleinfo";
+	private static final String TABLE_NAME_POST = "c_cec_article";
 
 	private static final String FAMILY_NAME_POST = "article_info";
 
@@ -120,6 +120,10 @@ public class Crawler4Dxy extends BaseCrawler {
 		String article_time = StringUtils.timeStamp2Date(time_stamp,"yyyyMMddHHmmss");
 		//文章内容
 		String article_content = getTextBySelector(article_doc, ARTICLE_CONTENT_SELECTOR, TEXT, null);
+		if(article_content.startsWith("上一张 下一张")){
+			logger.info("垃圾数据url:"+url);
+			return;
+		}
 		//作者名称
 		String author1_name = getTextBySelector(article_doc, AUTHOR_NAME_SELECTOR, TEXT, null);
 		String author_name = StringUtils.regexpExtract(author1_name, "作者：([u4e00-\u9fa5]+)");

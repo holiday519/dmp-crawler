@@ -1,5 +1,6 @@
 package com.pxene.dmp.crawler.ms;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,7 +26,7 @@ import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.SolrUtil;
 import com.pxene.dmp.common.StringUtils;
 import com.pxene.dmp.crawler.BaseCrawler;
-import com.pxene.dmp.domain.Article;
+import com.pxene.dmp.crawler.ms.domain.Article;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.WebURL;
@@ -38,7 +39,7 @@ public class Crawler4ZhishikuFJ extends BaseCrawler {
 	private Log logger = LogFactory.getLog(Crawler4ZhishikuFJ.class);
 
 	// 入库所需参数
-	private static final String TABLE_NAME_POST = "t_dxy_articleinfo";
+	private static final String TABLE_NAME_POST = "c_cec_article";
 
 	private static final String FAMILY_NAME_POST = "article_info";
 
@@ -137,7 +138,7 @@ public class Crawler4ZhishikuFJ extends BaseCrawler {
 								.next();
 						String keyOrValue = summary_tr_td_element.text();
 						if (num % 2 == 0) {
-							value = keyOrValue;
+							value = keyOrValue.replaceAll("\"", "'");
 							summary_value_map.put(key, value);
 						} else {
 							key = keyOrValue;
@@ -182,10 +183,14 @@ public class Crawler4ZhishikuFJ extends BaseCrawler {
 							String value = kv_strs[1];
 							String[] values = value.split("&&");
 							List<String> valueList = Arrays.asList(values);
-							stage_map.put(key, valueList);
+							List<String> newValueList = new ArrayList<String>();
+							for(String v:valueList){
+								newValueList.add(v.replaceAll("\"", "'"));
+							}
+							stage_map.put(key, newValueList);
 							info_map.put(stage_title, stage_map);
 						} else {
-							String value = kv_strs[0];
+							String value = kv_strs[0].replaceAll("\"", "'");
 							info_map.put(stage_title, value);
 						}
 					}
