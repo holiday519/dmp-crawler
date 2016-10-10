@@ -2,7 +2,6 @@ package com.pxene.dmp.common;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pxene.dmp.crawler.ms.domain.Article;
-import com.pxene.dmp.domain.Weixin;
 
 
 /**
@@ -58,20 +56,6 @@ public class SolrUtil {
 		}
 	}
 	
-	/**
-	 * 建立索引
-	 * @throws Exception
-	 */
-	public static void addIndex(Weixin weixin) {
-		try {
-			server.addBean(weixin);
-			server.commit(true, true, true);//软提交
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (SolrServerException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	/**
 	 * 删除索引
