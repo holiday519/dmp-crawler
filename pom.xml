@@ -14,6 +14,11 @@
             <id>mvn-repo</id>
             <url>http://maven.ansj.org/</url>
         </repository>
+        <repository>
+          <id>repository.jboss.org-public</id>
+          <name>JBoss.org Maven repository</name>
+          <url>https://repository.jboss.org/nexus/content/groups/public</url>
+        </repository>
     </repositories>
 
 	<properties>
@@ -21,14 +26,6 @@
 		<hbase.version>1.1.4</hbase.version>
 		<hadoop.version>2.6.0</hadoop.version>
 	</properties>
-    
-    <repositories>
-        <repository>
-          <id>repository.jboss.org-public</id>
-          <name>JBoss.org Maven repository</name>
-          <url>https://repository.jboss.org/nexus/content/groups/public</url>
-        </repository>
-    </repositories>
     
 	<dependencies>
 		<dependency>
