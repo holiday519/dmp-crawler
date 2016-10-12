@@ -20,6 +20,7 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 
+
 public class HBaseTools {
 
 	public static Configuration conf = new Configuration();
@@ -138,5 +139,59 @@ public class HBaseTools {
 		}
 		return datas;
 	}
+	
+	/**
+     * 向HBase中插入构造好的数据。
+     * @param tblName       HBase的表名
+     * @param preparedData  准备好的数据
+     * @throws IOException
+     */
+    public static void insertIntoHBase(String tblName, Map<String, Map<String, Map<String, byte[]>>> preparedData) throws IOException
+    {
+        if (preparedData.size() > 0) 
+        {
+            Table table = openTable(tblName);
+            if (table != null) 
+            {
+                putRowDatas(table, preparedData);
+                closeTable(table);
+            }
+        }
+    }
+    
+    
+    public static Map<String, Map<String, Map<String, byte[]>>> insertData(Map<String, Map<String, Map<String, byte[]>>> rowDatas, String rowKey, String familyName, String columnName, byte[] columnVal)
+    {
+        if (rowDatas.containsKey(rowKey))
+        {
+            rowDatas.put(rowKey, insertData(rowDatas.get(rowKey), familyName, columnName, columnVal));
+        }
+        else
+        {
+            rowDatas.put(rowKey, insertData(new HashMap<String, Map<String, byte[]>>(), familyName, columnName, columnVal));
+        }
+        return rowDatas;
+    }
+    
+    
+    public static Map<String, Map<String, byte[]>> insertData(Map<String, Map<String, byte[]>> familyDatas, String familyName, String columnName, byte[] columnVal)
+    {
+        if (familyDatas.containsKey(familyName))
+        {
+            familyDatas.put(familyName, insertData(familyDatas.get(familyName), columnName, columnVal));
+        }
+        else
+        {
+            familyDatas.put(familyName, insertData(new HashMap<String, byte[]>(), columnName, columnVal));
+        }
+        return familyDatas;
+    }
+    
+    
+    public static Map<String, byte[]> insertData(Map<String, byte[]> columnDatas, String columnName, byte[] columnVal)
+    {
+        columnDatas.put(columnName, columnVal);
+        return columnDatas;
+    }
 	
 }
