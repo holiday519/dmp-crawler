@@ -23,7 +23,7 @@ public class Application implements IPageCrawler
 {
     private static Logger logger = LogManager.getLogger(Application.class.getName());
     
-    private static final String HBASE_TABLE_NAME = "pxene_mc_weather";
+    private static final String HBASE_TABLE_NAME = "t_weather_citycode";
     
     private static final String HBASE_ROWKEY_PREFIX = "00050011";
     
