@@ -36,7 +36,7 @@ public class ProxyValidator
     private static final int CONNECT_TIMEOUT = 300;
     private static final int SOCKET_TIMEOUT = 150;
     
-    private static final String REDIS_HOST = "115.182.33.163";
+    private static final String REDIS_HOST = "dmp08";
     private static final int REDIS_PORT = 7000;
     
     

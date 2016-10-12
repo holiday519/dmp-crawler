@@ -27,7 +27,7 @@ public class WXMetaDataGenerator
     /**
      * Hive 连接URL
      */
-    private static final String HIVE_URL = "jdbc:hive2://115.182.33.156:10000/basetables";
+    private static final String HIVE_URL = "jdbc:hive2://dmp01:10000/basetables";
     
     /**
      * Hive 用户名
@@ -76,6 +76,7 @@ public class WXMetaDataGenerator
             String idx = "";
             String sn = "";
             
+            int i = 0;
             while (res.next()) 
             {
                 biz = res.getString(1);
@@ -85,7 +86,10 @@ public class WXMetaDataGenerator
                 product = new Product(biz, mid, idx, sn);
                 product.setDateStr(dataStr);
                 result.add(product);
+                i++;
+                System.out.println("<= TONY => Hive result: " + product);
             }
+            System.out.println("<= TONY => Total item fetch from Hive: " + i);
         }
         catch (Exception exception)
         {

@@ -10,7 +10,7 @@ import org.apache.solr.common.SolrInputDocument;
 
 public class WXSolrIndexBuilder
 {
-    private static final String SOLR_CORE_URL = "http://115.182.33.161:8983/solr/weixin_core_prod";
+    private static final String SOLR_CORE_URL = "http://dmp06:8983/solr/weixin_core_prod";
     private static HttpSolrClient client = null;
     
     
