@@ -9,12 +9,8 @@ import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.http.HttpEntity;
@@ -68,7 +64,7 @@ public class Crawler4Gpsspg implements IPageCrawler
     /**
      * HBase表名
      */
-    private static final String HBASE_TABLE_NAME = "pxene_bs_telecom";
+    private static final String HBASE_TABLE_NAME = "t_bs_telecom";
     
     /**
      * HBase列簇名称
