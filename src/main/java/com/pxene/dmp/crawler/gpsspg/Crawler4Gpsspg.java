@@ -54,7 +54,7 @@ public class Crawler4Gpsspg implements IPageCrawler
     /**
      * HttpClient 请求 User-Agent
      */
-    private static final String REQUEST_UA = "http://www.gpsspg.com/bs.htm"; 
+    private static final String REQUEST_UA = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36 Core/1.47.640.400 QQBrowser/9.4.8309.400"; 
 
     /**
      * HttpClient 请求 超时时间
@@ -71,21 +71,6 @@ public class Crawler4Gpsspg implements IPageCrawler
      */
     private static final String HBASE_COLUMN_FAMILY_NAME = "info";
 
-    /**
-     * Zookeeper端口
-     */
-    private static final String ZOOKEEPER_CLIENTPORT = "2181";
-
-    /**
-     * Zookeeper主机名列表
-     */
-    private static final String ZOOKEEPER_QUORUMSTRING = "dmp01,dmp02,dmp03,dmp04,dmp05";
-
-    /**
-     * HBase client超时时间
-     */
-    private static final long HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD = 1200000;
-    
     /**
      * Hive JDBC驱动
      */

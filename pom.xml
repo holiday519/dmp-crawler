@@ -196,7 +196,7 @@
                         <manifest>  
                             <addClasspath>true</addClasspath>  
                             <classpathPrefix>lib/</classpathPrefix>  
-                            <mainClass>com.pxene.dmp.common.HBaseTools</mainClass>  
+                            <mainClass>com.pxene.dmp.main.CrawlerManager</mainClass>  
                         </manifest>  
                     </archive>
                     <descriptors>  
