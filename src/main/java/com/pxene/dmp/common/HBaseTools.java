@@ -30,7 +30,7 @@ public class HBaseTools {
 	static {
 		conf.set("hbase.zookeeper.property.clientPort", "2181");
 		conf.set("hbase.zookeeper.quorum", "dmp01,dmp02,dmp03,dmp04,dmp05");
-		conf.setLong(HConstants.HBASE_REGIONSERVER_LEASE_PERIOD_KEY,120000);
+		conf.setLong(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, 120000);
 		try {
 			conn = ConnectionFactory.createConnection(conf);
 		} catch (IOException e) {

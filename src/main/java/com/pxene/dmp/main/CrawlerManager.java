@@ -18,7 +18,6 @@ import com.pxene.dmp.common.CrawlerConfig.LoginConf;
 import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.SeedParser;
 import com.pxene.dmp.common.StringUtils;
-import com.pxene.dmp.crawler.ms.Crawler4ZhishikuFJ;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
@@ -74,9 +73,9 @@ public class CrawlerManager {
 			config.setUserAgentString(userAgent);
 
 			// 抓取深度
-			 config.setMaxDepthOfCrawling(5);
+			//config.setMaxDepthOfCrawling(5);
 			// 最大网页数
-			 config.setMaxPagesToFetch(100000);
+			config.setMaxPagesToFetch(1000000);
 			config.setCrawlStorageFolder(crawlStorageFolder);
 			config.setSocketTimeout(20000);
 			config.setConnectionTimeout(20000);

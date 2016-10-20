@@ -1,0 +1,18 @@
+{
+	"seeds" : [
+		"http://sports.sina.com.cn/"
+	],
+	"loginConf" : {
+		"enable" : false,
+		"url" : "",
+		"usrkey" : "",
+		"username" : "",
+		"pwdkey" : "",
+		"password" : ""
+	},
+	"proxyConf" : {
+		"enable" : false,
+		"ips" : [],
+		"userAgents" : []
+	}
+}
