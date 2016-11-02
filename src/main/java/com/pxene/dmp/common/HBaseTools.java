@@ -111,34 +111,6 @@ public class HBaseTools {
 		}
 	}
 	
-	/**
-	 * 根据rowkey查找具体值
-	 * @param table	hbase表
-	 * @param rowkey 具体的rowkey
-	 * @param family 指定列簇
-	 * @param row 指定行
-	 * @return 返回具体的数据
-	 */
-	public static Map<String,String> getRowDatas(Table table, String rowkey, byte[] family,
-			byte[] row) {
-		Map<String,String> datas = new HashMap<String,String>();
-		Get get = new Get(row);
-		get.addFamily(family);
-		// 也可以通过addFamily或addColumn来限定查询的数据
-		Result result;
-		try {
-			result = table.get(get);
-			List<Cell> cells = result.listCells();
-			for (Cell cell : cells) {
-				String key = new String(CellUtil.cloneQualifier(cell));
-				String value = new String(CellUtil.cloneValue(cell), "UTF-8");
-				datas.put(key, value);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return datas;
-	}
 	
 	/**
      * 向HBase中插入构造好的数据。
