@@ -1,6 +1,7 @@
 package com.pxene.dmp.crawler.social.worker;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -48,6 +49,13 @@ public class WXMetaDataGenerator
      * @throws IOException
      * @throws SQLException
      */
+    /**
+     * @param dataStr
+     * @param partitionSource
+     * @return
+     * @throws IOException
+     * @throws SQLException
+     */
     public List<Product> generate(String dataStr, String partitionSource) throws IOException, SQLException
     {
         List<Product> result = new ArrayList<Product>();
@@ -83,10 +91,16 @@ public class WXMetaDataGenerator
                 mid = res.getString(2);
                 idx = res.getString(3);
                 sn = res.getString(4);
+                
+                if (biz.toUpperCase().contains("%3D"))
+                {
+                    biz = URLDecoder.decode(biz, "utf-8");
+                }
+                
                 product = new Product(biz, mid, idx, sn);
                 product.setDateStr(dataStr);
                 result.add(product);
-                i++;
+                i++; 
                 System.out.println("<= TONY => Hive result: " + product);
             }
             System.out.println("<= TONY => Total item fetch from Hive: " + i);

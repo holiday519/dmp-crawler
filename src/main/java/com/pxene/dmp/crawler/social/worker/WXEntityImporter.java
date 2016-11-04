@@ -1,6 +1,7 @@
 package com.pxene.dmp.crawler.social.worker;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -79,7 +80,7 @@ public class WXEntityImporter
     /**
      * Redis配置
      */
-    private static final String REDIS_HOST = "115.182.33.163";
+    private static final String REDIS_HOST = "dmp08";
     private static final int REDIS_PORT = 7000;
     private static final int REDIS_TIMEOUT = 10000;
     private static final int REDIS_DB = 10;
@@ -95,23 +96,28 @@ public class WXEntityImporter
         String mid = product.getMid();
         String idx = product.getIdx();
         String sn = product.getSn();
+        
         String hbaseRowkey = biz + "_" + mid + "_" + idx + "_" + sn;
         logger.debug("==> RowKey: " + hbaseRowkey);
+        
+        System.out.println("<= TONY => Received param : " + product);
         
         boolean needCrawlerArt = false;
         boolean needCrawlerBiz = false;
         
         // 初始化HBase连接
+        /*
         Connection connection = resource.getHBaseConnection();
         if (connection == null || connection.isClosed())
         {
             System.err.println("HBase client connection is not ready.");
-            System.exit(-1);
+            return;
         }
+        */
         
         // 文章表：
         //      - 确保不会取到重复的biz, mid, idx, sn组合
-        if (!isRowKeyExist(connection, "t_prod_weixin_art", hbaseRowkey))
+        if (!isRowKeyExist("t_prod_weixin_art", hbaseRowkey))
         {
             needCrawlerArt = true;
         }
@@ -119,13 +125,13 @@ public class WXEntityImporter
         // 公众号表：
         //      - 确保不会取到重复的biz
         //      - 确保biz作为rowKey未过期
-        if (!isRowKeyExist(connection, "t_prod_weixin_biz", biz))
+        if (!isRowKeyExist("t_prod_weixin_biz", biz))
         {
             needCrawlerBiz = true;
         }
         else
         {
-            if (!isRowExpired(connection, "t_prod_weixin_biz", biz))
+            if (!isRowExpired("t_prod_weixin_biz", biz))
             {
                 needCrawlerBiz = true;
             }
@@ -182,6 +188,7 @@ public class WXEntityImporter
         }
         
         // -- 关闭HBase连接 --  \\
+        /*
         if (connection != null)
         {
             try
@@ -192,9 +199,11 @@ public class WXEntityImporter
             catch (IOException e)
             {
                 logger.fatal("HBase connection faild, see detail: " + e);
-                System.exit(-1);
+                return;
+                //System.exit(-1);
             }
         }
+        */
         
         // 在Solr中构建索引
         /*
@@ -211,13 +220,14 @@ public class WXEntityImporter
      * @param hbaseRowkey
      * @return
      */
-    private boolean isRowKeyExist(Connection connection, String tableName, String hbaseRowkey)
+    private boolean isRowKeyExist(String tableName, String hbaseRowkey)
     {
+        Table table = null;
         try
         {
-            HTable table = (HTable) connection.getTable(TableName.valueOf(tableName));
+            table = HBaseTools.openTable(tableName);
             Get get = new Get(Bytes.toBytes(hbaseRowkey));
-            if (table.exists(get))
+            if (table != null && table.exists(get)) 
             {
                 return true;
             }
@@ -225,6 +235,17 @@ public class WXEntityImporter
         catch (IOException e)
         {
             e.printStackTrace();
+        }
+        finally 
+        {
+            try
+            {
+                HBaseTools.closeTable(table);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -237,11 +258,12 @@ public class WXEntityImporter
      * @param hbaseRowkey
      * @return
      */
-    private boolean isRowExpired(Connection connection, String tableName, String hbaseRowkey)
+    private boolean isRowExpired(String tableName, String hbaseRowkey)
     {
+        Table table = null;
         try
         {
-            HTable table = (HTable) connection.getTable(TableName.valueOf(tableName));
+            table = HBaseTools.openTable(tableName);
             Get get = new Get(Bytes.toBytes(hbaseRowkey));
             get.getTimeRange();
             
@@ -263,6 +285,17 @@ public class WXEntityImporter
         catch (IOException e)
         {
             e.printStackTrace();
+        }
+        finally 
+        {
+            try
+            {
+                HBaseTools.closeTable(table);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
         return false;
     }
