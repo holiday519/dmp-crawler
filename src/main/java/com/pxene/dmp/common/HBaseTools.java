@@ -58,6 +58,14 @@ public class HBaseTools {
 		}
 	}
 	
+	public static void closeConn() {
+		try {
+			conn.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void putColumnDatas(Table table, String rowKey, String familyName, Map<String, byte[]> columnDatas) {
 		Put put = new Put(rowKey.getBytes());
 		for (Map.Entry<String, byte[]> columnData : columnDatas.entrySet()) {

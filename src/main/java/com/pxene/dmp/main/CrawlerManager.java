@@ -15,6 +15,7 @@ import org.apache.commons.cli.Options;
 import com.pxene.dmp.common.CookieList;
 import com.pxene.dmp.common.CrawlerConfig;
 import com.pxene.dmp.common.CrawlerConfig.LoginConf;
+import com.pxene.dmp.common.HBaseTools;
 import com.pxene.dmp.common.IPageCrawler;
 import com.pxene.dmp.common.SeedParser;
 import com.pxene.dmp.common.StringUtils;
@@ -157,5 +158,7 @@ public class CrawlerManager {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("options", options);
 		}
+		
+		HBaseTools.closeConn();
 	}
 }
