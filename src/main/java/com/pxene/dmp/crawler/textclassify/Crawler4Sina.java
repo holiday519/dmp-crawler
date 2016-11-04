@@ -60,7 +60,7 @@ public class Crawler4Sina extends BaseCrawler {
 		}
 		public static final class OTHERS {
 			public static final String CODE = "03";
-			public static final String REGEX = "^http://sports\\.sina\\.com\\.cn/(?!basketball/nba|cba)/.*\\.shtml$";
+			public static final String REGEX = "^http://sports\\.sina\\.com\\.cn/(?!g|global|china|basketball/nba|cba)/.*\\.shtml$";
 			public static int count = 0;
 		}
 	}
