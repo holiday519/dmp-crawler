@@ -159,6 +159,6 @@ public class CrawlerManager {
 			formatter.printHelp("options", options);
 		}
 		
-		HBaseTools.closeConn();
+		HBaseTools.close();
 	}
 }

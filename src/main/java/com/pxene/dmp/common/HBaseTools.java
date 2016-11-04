@@ -58,9 +58,10 @@ public class HBaseTools {
 		}
 	}
 	
-	public static void closeConn() {
+	public static void close() {
 		try {
 			conn.close();
+			pool.shutdown();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
