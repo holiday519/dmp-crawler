@@ -1,6 +1,20 @@
 {
 	"seeds" : [
-		"http://www.sina.com.cn/"
+		"http://news.sina.com.cn/",
+		"http://mil.news.sina.com.cn/",
+		"http://sports.sina.com.cn/",
+		"http://fashion.sina.com.cn/",
+		"http://eladies.sina.com.cn/",
+		"http://health.sina.com.cn/",
+		"http://baby.sina.com.cn/",
+		"http://finance.sina.com.cn/",
+		"http://ent.sina.com.cn/",
+		"http://edu.sina.com.cn/",
+		"http://travel.sina.com.cn/",
+		"http://tech.sina.com.cn/",
+		"http://auto.sina.com.cn/",
+		"http://bj.house.sina.com.cn/",
+		"http://games.sina.com.cn/"
 	],
 	"loginConf" : {
 		"enable" : false,
