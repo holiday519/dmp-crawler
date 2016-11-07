@@ -27,7 +27,8 @@ public class Crawler4Sina extends BaseCrawler {
 	private static final String FAMILY = "article";
 	private FirstLevel[] firstLevels;
 	private Map<String, String> filterMap=new HashMap<>();
-    private  Table table;
+    private Table table;
+    
 	@Override
 	public void onStart() {
 		firstLevels = SinaConfig.GetConfig();
@@ -40,14 +41,9 @@ public class Crawler4Sina extends BaseCrawler {
 				filterMap.put(firstCode+secondeCode, regex);
 			}
 		}
-		 table = HBaseTools.openTable(TABLE);
-		super.onStart();
+		table = HBaseTools.openTable(TABLE);
 	}
 
-	private static final int COUNT_LIMIT = 50000;
-
-	
-	
 	public Crawler4Sina() {
 		super("/" + Crawler4Sina.class.getName().replace(".", "/") + ".json");
 	}
@@ -57,7 +53,7 @@ public class Crawler4Sina extends BaseCrawler {
 		String url = webURL.getURL().toLowerCase();
 		for (Entry<String, String> entry : filterMap.entrySet()) {
 			String regex=entry.getValue();
-			if ( url.matches(regex)) {
+			if (url.matches(regex)) {
 				return true;
 			}
 		}
