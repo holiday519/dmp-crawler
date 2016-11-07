@@ -1,0 +1,237 @@
+[
+  {
+    "num": "01",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://news.sina.com.cn/s/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://news.sina.com.cn/w/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://news.sina.com.cn/c/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "04",
+        "regex": "http://mil.news.sina.com.cn/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+  {
+    "num": "02",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://sports.sina.com.cn/(g|global)/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://sports.sina.com.cn/basketball/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://sports.sina.com.cn/others/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+  {
+    "num": "03",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://fashion.sina.com.cn/s/.*?[\\d-]+/\\d+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://fashion.sina.com.cn/b/.*?[\\d-]+/\\d+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://fashion.sina.com.cn/d/.*?[\\d-]+/\\d+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+  {
+    "num": "04",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://eladies.sina.com.cn/feel/.*?[\\d-]+/\\d+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://eladies.sina.com.cn/news/(bagua|star)/.*?[\\d-]+/\\d+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://eladies.sina.com.cn/wzx/.*?[\\d-]+/\\d+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "05",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://health.sina.com.cn/hc/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://health.sina.com.cn/d/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://med.sina.com/article_detail[_\\d]+\\.html.*"
+      }
+    ]
+  },
+   {
+    "num": "06",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://baby.sina.com.cn/health/mmjk/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://baby.sina.com.cn/health/bbjk/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "07",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://finance.sina.com.cn/(roll|stock)/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://finance.sina.com.cn/money/fund/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://finance.sina.com.cn/money/lcgh/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "04",
+        "regex": "http://finance.sina.com.cn/money/bank/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "05",
+        "regex": "http://finance.sina.com.cn/money/insurance/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "06",
+        "regex": "http://finance.sina.com.cn/money/forex/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "08",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://ent.sina.com.cn/m/c/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://ent.sina.com.cn/tv/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://ent.sina.com.cn/(y|music)/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "09",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://edu.sina.com.cn/zxx/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://edu.sina.com.cn/(gaokao|zhongkao)/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "03",
+        "regex": "http://edu.sina.com.cn/(kaoyan|official|zgks|cet)/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "04",
+        "regex": "http://edu.sina.com.cn/a/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "10",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://travel.sina.com.cn/china/[\\d-]+/\\d+\\.shtml.*|http://travel.sina.com.cn/\\w+_\\w+_\\d+-[\\w-]+.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://travel.sina.com.cn/outbound/pages/[\\d-]+/detail-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "11",
+    "child": [
+      {
+        "num": "00",
+        "regex": "http://sports.sina.com.cn/l/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "12",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://tech.sina.com.cn/(i|it)/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://tech.sina.com.cn/(mobile|n|digi)/.*?[\\d-]+/doc-[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "13",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://auto.sina.com.cn/(newcar|review|guide)/.*?[\\d-]+/detail-[\\d\\w-]+\\.shtml.*"
+      },
+      {
+        "num": "02",
+        "regex": "http://auto.sina.com.cn/(jishu|service)/.*?[\\d-]+/detail-[\\d\\w-]+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "14",
+    "child": [
+      {
+        "num": "01",
+        "regex": "http://bj.house.sina.com.cn/scan/[\\d-]+/\\d+\\.shtml.*"
+      }
+    ]
+  },
+   {
+    "num": "15",
+    "child": [
+      {
+        "num": "00",
+        "regex": "http://games.sina.com.cn/g/.*?[\\d-]+/[\\d\\w]+\\.shtml.*"
+      }
+    ]
+  }
+]

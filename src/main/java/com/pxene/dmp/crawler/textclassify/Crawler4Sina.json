@@ -1,6 +1,6 @@
 {
 	"seeds" : [
-		"http://sports.sina.com.cn/"
+		"http://www.sina.com.cn/"
 	],
 	"loginConf" : {
 		"enable" : false,
