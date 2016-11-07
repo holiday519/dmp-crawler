@@ -1,6 +1,5 @@
 package com.pxene.dmp.crawler.textclassify;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,8 +21,6 @@ import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler4Sina extends BaseCrawler {
-
-	private static Map<String, Integer> countMap = Collections.synchronizedMap(new HashMap<String, Integer>());
 
 	private Log log = LogFactory.getLog(Crawler4Sina.class);
 	private static final String TABLE = "t_article_classify";
@@ -92,31 +89,25 @@ public class Crawler4Sina extends BaseCrawler {
 		if(!url.matches(regex)){
 			return false;
 		}
-		log.info("<=ee-debug=>"+code+":::" + url);
 		String html = ((HtmlParseData) page.getParseData()).getHtml();
 		Map<String, Map<String, Map<String, byte[]>>> rowDatas = new HashMap<String, Map<String, Map<String, byte[]>>>();
 		Document doc = parseHtml(html);
-		String title = doc.select("#artibodyTitle").text();
-		String content = doc.select("#artibody").text().length()>0?doc.select("#artibody").text():doc.select("#articleContent").text();
+		String title = doc.select("#artibodyTitle").text().length()>0?doc.select("#artibodyTitle").text():doc.select("#main_title").text();
+		title=title.length()>0? title:doc.select(".news-title").text();
+		title=title.length()>0? title:doc.select(".title").text();
 		
+		String content = doc.select("#artibody").text().length()>0?doc.select("#artibody").text():doc.select("#articleContent").text();
+		content=content.length()>0? content:doc.select(".textbox").text();
+		content=content.length()>0? content:doc.select(".art-con-left").text();
 		if (content.length() == 0 || title.length() == 0) {
 			return false;
 		}
+		log.info("<=ee-debug=>"+code+":::" + url);
 //		System.out.println(content);  //打印测试
 		String rowKey = code+UUID.randomUUID().toString();
 		insertData(rowDatas, rowKey, FAMILY, "title", Bytes.toBytes(title));
 		insertData(rowDatas, rowKey, FAMILY, "content", Bytes.toBytes(content));
 
-		synchronized (countMap) {
-			if (countMap.get(code) == null) {
-				countMap.put(content, 1);
-			} else {
-				countMap.put(code, countMap.get(code) + 1);
-			}
-			if (countMap.get(code)!=null  && countMap.get(code) > COUNT_LIMIT) {
-				return false;
-			}
-		}
 		if (rowDatas.size() > 0) {
 			if (table != null) {
 				HBaseTools.putRowDatas(table, rowDatas);
