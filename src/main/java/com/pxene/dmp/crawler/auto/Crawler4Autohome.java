@@ -93,7 +93,7 @@ public class Crawler4Autohome extends BaseCrawler {
 	public Crawler4Autohome() {
 		super("/" + Crawler4Autohome.class.getName().replace(".", "/") + ".json");
 	}
-
+	
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL webURL) {
 		String url = webURL.getURL().toLowerCase();
@@ -533,6 +533,7 @@ public class Crawler4Autohome extends BaseCrawler {
 				HBaseTools.closeTable(table);
 			}
 		}
+		
 	}
 	
 }
